@@ -1,0 +1,10 @@
+Provide an implementation of your system baseline for the task.
+
+The baseline system is normally a simple model. If the task organisers make a baseline system available, you can re-implement that system. Otherwise, you have to implement your own baseline system. The baseline is a very important component for a shared task because:
+- it helps understanding how big is the improvement of your final system
+- it provides a sanity check that your final systems actually works
+- it gives basic information about difficult is the task and which problems your final model may face
+
+You have to upload:
+- a zip file with your code and documentation on how to run it
+- a one page .pdf with a high level description of how your system baseline works
