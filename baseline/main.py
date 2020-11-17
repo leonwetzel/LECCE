@@ -29,14 +29,14 @@ def main():
     """
     try:
         if sys.argv[1] == "-S":
-            td = load(f"data/{SINGLE_TRAIN_FILE_NAME}")
-            td_trial = load(f"data/{SINGLE_TRIAL_FILE_NAME}")
+            td = load(f"../data/{SINGLE_TRAIN_FILE_NAME}")
+            td_trial = load(f"../data/{SINGLE_TRIAL_FILE_NAME}")
         elif sys.argv[1] == "-M":
-            td = load(f"data/{MULTI_TRAIN_FILE_NAME}")
-            td_trial = load(f"data/{MULTI_TRIAL_FILE_NAME}")
+            td = load(f"../data/{MULTI_TRAIN_FILE_NAME}")
+            td_trial = load(f"../data/{MULTI_TRIAL_FILE_NAME}")
     except IndexError:
-        exit("Please specify which type of trial data you would like"
-             " to use (-S for single trial, -M for multi trial data)!")
+        exit("Please specify which type of trial information you would like"
+             " to use (-S for single trial, -M for multi trial information)!")
 
     X_train, y_train = extract_features(td), td[['complexity']]
     X_trial, y_trial = extract_features(td_trial),\
@@ -47,6 +47,8 @@ def main():
     X_trial = X_trial[['sentence_length', 'sentence_word_count',
                  'sentence_avg_word_length', 'sentence_vowel_count',
                  'token_length', 'token_vowel_count', 'subcorpus']]
+
+    print(X_train)
 
     pipeline = Pipeline([
         # ('scaler', StandardScaler()),
@@ -82,7 +84,7 @@ def main():
 
 def load(filename):
     """
-    Load data from the .tsv files and store contents into a
+    Load information from the .tsv files and store contents into a
     pandas DataFrame.
     :param filename:
     :return:
