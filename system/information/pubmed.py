@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 
 
 # FIXME link wordt niet herkend...
+# TODO oplossen dat via FTP bestanden gedownload kunnen worden
 def download():
     """Downloads the data from the us.gov website
 
