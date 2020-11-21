@@ -24,17 +24,21 @@ def download_trial_data(urls=None, directory="data/trial"):
 
     """
     if not urls:
+        # download 'default' trial data from the LCP repository
         urls = [MULTI_TRIAL_DATA_URL, SINGLE_TRIAL_DATA_URL]
 
     if not os.path.isdir(directory):
+        # create new dir if dir does not exist
         os.mkdir(directory)
 
     if not is_directory_empty(directory):
+        # raise warning if dir is not empty
         print(f"Warning: directory {directory} is not empty!")
         enter = input(f"Press ENTER if you want to overwrite the"
                       f" existing data in {directory} [ENTER]")
 
         if enter != "":
+            # quit function if no confirmation is given
             print("Cancelling download...")
             return None
 
