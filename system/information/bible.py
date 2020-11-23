@@ -47,5 +47,5 @@ def strip(location):
     for line in f:
         newlines.append(line[4:].rstrip('\n'))
     for element in newlines[100:199717]:
-        text_file.write(element)
+        text_file.write(element.lower())
     text_file.close()
