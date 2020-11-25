@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+from system.information.bible import strip
 
 
 def main():
@@ -10,6 +11,9 @@ def main():
     parser.add_argument('-f', '--full', help="file name for complete"
                                              " data set")
     args = parser.parse_args()
+
+    file = 'bible.txt'
+    strip(file)
 
 
 if __name__ == '__main__':
