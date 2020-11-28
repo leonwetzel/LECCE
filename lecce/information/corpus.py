@@ -9,7 +9,7 @@ import py7zr
 import requests
 from tqdm import tqdm
 
-from system.information._lcp import is_directory_empty
+from lecce.information._lcp import is_directory_empty
 
 
 class Corpus:

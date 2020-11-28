@@ -2,7 +2,7 @@
 import os
 import requests
 
-from system.information.utils import is_directory_empty
+from lecce.information.utils import is_directory_empty
 
 TRAIN_DATA_URL = "https://github.com/MMU-TDMLab/CompLex/raw/master/train.7z"
 MULTI_TRIAL_DATA_URL = "https://raw.githubusercontent.com/MMU-TDMLab/CompLex/master/trial/lcp_multi_trial.tsv"

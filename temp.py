@@ -2,7 +2,7 @@
 import os
 import pickle
 
-from system.information.pubmed import unzip, extract_abstract_texts
+from lecce.information.pubmed import unzip, extract_abstract_texts
 
 
 def main():
