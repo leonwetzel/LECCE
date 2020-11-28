@@ -336,5 +336,5 @@ class Lcp(Corpus, Extractable):
 
         """
         with py7zr.SevenZipFile(archive_name, mode='r',
-                                password='secret') as z:
-            z.extractall()
+                                password='YellowDolphin73!') as z:
+            z.extractall(path="data")
