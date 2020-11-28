@@ -1,8 +1,7 @@
-import gzip
 import os
-import shutil
 import tarfile
 import xml.etree.ElementTree as ET
+from ftplib import FTP
 
 import requests
 from tqdm import tqdm
@@ -17,7 +16,7 @@ class Corpus:
     """
     urls = []
 
-    def download(self, destination_dir):
+    def download(self, destination_dir="data"):
         """Downloads contents from given urls.
 
         The progress functionality is stolen from
@@ -68,12 +67,6 @@ class Corpus:
                             f.write(ch)
                             pbar.update(len(ch))
 
-    def to_txt(self):
-        pass
-
-    def to_list(self):
-        pass
-
     def add_url(self, url, filename):
         """
 
@@ -90,6 +83,39 @@ class Corpus:
         """
         self.urls.append({"url": url, "name": filename})
 
+    def remove_url(self, url, filename, remove_duplicate_urls=True):
+        """
+
+        Parameters
+        ----------
+        url : str
+            URL to be removed.
+        filename : str
+            Filename related to data originating from the URL.
+        remove_duplicate_urls : bool
+            Indicates if all results for the URL should be
+            removed from the data set or not
+
+        Returns
+        -------
+
+        """
+        if remove_duplicate_urls:
+            self.urls = [pair for pair in self.urls if pair["url"] != url]
+        else:
+            self.urls = [pair for pair in self.urls if
+                         pair["url"] == url and
+                         pair["filename"] == filename]
+
+
+class Extractable:
+    """
+    Class for data sources that are either zipped, tarred
+    or whatsoever.
+    """
+    def extract(self):
+        return 0
+
 
 class Bible(Corpus):
     """
@@ -102,7 +128,7 @@ class Bible(Corpus):
         pass
 
 
-class Europarl(Corpus):
+class Europarl(Corpus, Extractable):
     """
     Class for Europarl corpora.
     """
@@ -154,16 +180,21 @@ class Europarl(Corpus):
                 yield tarinfo
 
 
-class Pubmed(Corpus):
+class Pubmed(Corpus, Extractable):
+
+    urls = [{
+        "url": "ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline",
+        "name": "pubmed"
+    }]
 
     # TODO invullen
     # Aangezien pubmed data via FTP ingeladen moet worden, moeten we
     # de functie overriden
-    def download(self, destination_dir):
-        pass
+    def download(self, destination_dir="data"):
+        ftp = FTP("ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline")
+        ftp.login()
 
-    @staticmethod
-    def unzip(file, new_filename=None):
+    def extract(self):
         """Unzips a given file and stores its content in a new file.
 
         Parameters
@@ -177,12 +208,13 @@ class Pubmed(Corpus):
         -------
 
         """
-        if not new_filename:
-            new_filename = file.split('.')[:2]
-
-        with gzip.open(file, 'rb') as f_in:
-            with open(f'{".".join(new_filename)}', 'wb') as f_out:
-                shutil.copyfileobj(f_in, f_out)
+        # if not new_filename:
+        #     new_filename = file.split('.')[:2]
+        #
+        # with gzip.open(file, 'rb') as f_in:
+        #     with open(f'{".".join(new_filename)}', 'wb') as f_out:
+        #         shutil.copyfileobj(f_in, f_out)
+        pass
 
     @staticmethod
     def extract_abstract_texts(file):
@@ -212,15 +244,24 @@ class Pubmed(Corpus):
         return texts
 
 
-class Lcp(Corpus):
+class Lcp(Corpus, Extractable):
     """
 
     """
     urls = [
         {
             "url": "https://raw.githubusercontent.com/MMU-TDMLab/CompLex/master/trial/lcp_multi_trial.tsv",
-            "name": "lcp_multi_trial.tsv"},
+            "name": "lcp_multi_trial.tsv"
+        },
         {
             "url": "https://raw.githubusercontent.com/MMU-TDMLab/CompLex/master/trial/lcp_single_trial.tsv",
-            "name": "lcp_single_trial.tsv"}
+            "name": "lcp_single_trial.tsv"
+        },
+        {
+            "url": "https://github.com/MMU-TDMLab/CompLex/raw/master/train.7z",
+            "name": "lcp_train.7z"
+        }
     ]
+
+    def extract(self):
+        return 0

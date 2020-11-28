@@ -2,6 +2,7 @@
 import os
 import requests
 
+from system.information.utils import is_directory_empty
 
 TRAIN_DATA_URL = "https://github.com/MMU-TDMLab/CompLex/raw/master/train.7z"
 MULTI_TRIAL_DATA_URL = "https://raw.githubusercontent.com/MMU-TDMLab/CompLex/master/trial/lcp_multi_trial.tsv"
@@ -51,22 +52,3 @@ def download_trial_data(urls=None, directory="data/trial"):
             F.write(r.text)
 
     return None
-
-
-def is_directory_empty(directory):
-    """Checks if a given directory is empty or not.
-
-    Parameters
-    ----------
-    directory : str
-        Name of directory.
-
-    Returns
-    -------
-    is_directory_empty : bool
-        Indication if a directory is either empty or not.
-    """
-    if not os.listdir(directory):
-        return True
-    else:
-        return False
