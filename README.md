@@ -1,4 +1,4 @@
-# STIS
+# LECCE (LExiCal Complexity Estimator)
 Code for the course Shared Task Information Science. Contains code of
 LECCE (LExiCal Complexity Estimator), our submission for SemEval 2021 Task 1.
 
