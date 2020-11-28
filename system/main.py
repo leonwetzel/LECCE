@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import argparse
-from system.information.bible import strip
+from system.information._bible import strip
 
 
 def main():

@@ -1,12 +1,15 @@
 import os
+import re
 import tarfile
 import xml.etree.ElementTree as ET
+from abc import ABC, abstractmethod
 from ftplib import FTP
 
+import py7zr
 import requests
 from tqdm import tqdm
 
-from system.information.lcp import is_directory_empty
+from system.information._lcp import is_directory_empty
 
 
 class Corpus:
@@ -32,7 +35,7 @@ class Corpus:
 
         """
         if not self.urls:
-            raise ValueError("Could not find URL to download data"
+            raise ValueError("Could not find URL(s) to download data"
                              " from!")
 
         if not os.path.isdir(destination_dir):
@@ -68,7 +71,7 @@ class Corpus:
                             pbar.update(len(ch))
 
     def add_url(self, url, filename):
-        """
+        """Add a URL linking to a data source.
 
         Parameters
         ----------
@@ -84,7 +87,7 @@ class Corpus:
         self.urls.append({"url": url, "name": filename})
 
     def remove_url(self, url, filename, remove_duplicate_urls=True):
-        """
+        """Remove a URL linking to a data source.
 
         Parameters
         ----------
@@ -101,20 +104,34 @@ class Corpus:
 
         """
         if remove_duplicate_urls:
-            self.urls = [pair for pair in self.urls if pair["url"] != url]
+            self.urls = [pair for pair in self.urls if
+                         pair["url"] != url]
         else:
             self.urls = [pair for pair in self.urls if
                          pair["url"] == url and
                          pair["filename"] == filename]
 
 
-class Extractable:
+class Extractable(ABC):
     """
     Class for data sources that are either zipped, tarred
     or whatsoever.
     """
-    def extract(self):
-        return 0
+
+    @abstractmethod
+    def extract(self, archive_name):
+        """Extract files from a compressed archive, such as .zip,
+        .tgz or .7z.
+
+        Parameters
+        ----------
+        archive_name : name of the archive file
+
+        Returns
+        -------
+
+        """
+        pass
 
 
 class Bible(Corpus):
@@ -124,8 +141,38 @@ class Bible(Corpus):
     urls = [{"url": "http://www.gutenberg.org/files/10/10.txt",
              "name": "bible.txt"}]
 
-    def clean(self):
-        pass
+    @staticmethod
+    def prepare(filename, output_filename,
+                start="The Old Testament of the King James Version of "
+                      "the Bible\n",
+                end="End of the Project Gutenberg EBook of The King "
+                    "James Bible\n"):
+        """
+
+        Parameters
+        ----------
+        filename : str
+        output_filename : str
+        start : str
+        end : str
+
+        Returns
+        -------
+
+        """
+        with open(filename, "r", encoding='utf-8') as F:
+            original_corpus = F.readlines()
+            start_index = original_corpus.index(start)
+            end_index = original_corpus.index(end)
+            corpus = original_corpus[start_index:end_index]
+
+            new_corpus = [line.strip() for line in corpus]
+            new_corpus = [re.sub(r'^\d+:\d+', '', line) for line
+                          in new_corpus if line]
+
+            with open(output_filename, 'w', encoding='utf-8') as f:
+                for line in new_corpus:
+                    f.write(f"{line.strip()}\n")
 
 
 class Europarl(Corpus, Extractable):
@@ -135,26 +182,34 @@ class Europarl(Corpus, Extractable):
     urls = [{"url": "https://www.statmt.org/europarl/v7/europarl.tgz",
              "name": "europarl.tgz"}]
 
-    def clean(self, filename):
-        with open(filename, "r") as F:
-            file = F.readlines()
-
-        for line in file:
-            print(line)
-
-    def extract(self, filename):
+    @staticmethod
+    def prepare(filename, output_filename):
         """
 
         Parameters
         ----------
-        filename : str
+        filename
+        output_filename
+
+        Returns
+        -------
+
+        """
+        pass
+
+    def extract(self, archive_name):
+        """Extract files from a .tgz archive.
+
+        Parameters
+        ----------
+        archive_name : str
             Name of the zipped file.
 
         Returns
         -------
 
         """
-        with tarfile.open(filename, "r") as tar:
+        with tarfile.open(archive_name, "r") as tar:
             tar.extractall(path="data",
                            members=self.get_english_proceedings(tar))
 
@@ -181,28 +236,34 @@ class Europarl(Corpus, Extractable):
 
 
 class Pubmed(Corpus, Extractable):
-
-    urls = [{
-        "url": "ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline",
-        "name": "pubmed"
-    }]
+    urls = [{"url": "ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline",
+             "name": "pubmed"}]
 
     # TODO invullen
     # Aangezien pubmed data via FTP ingeladen moet worden, moeten we
     # de functie overriden
     def download(self, destination_dir="data"):
-        ftp = FTP("ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline")
-        ftp.login()
+        """
 
-    def extract(self):
+        Parameters
+        ----------
+        destination_dir
+
+        Returns
+        -------
+
+        """
+        ftp = FTP("ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline")
+        ftp.connect(port=21)
+        ftp.getwelcome()
+
+    def extract(self, archive_name):
         """Unzips a given file and stores its content in a new file.
 
         Parameters
         ----------
-        new_filename :
-            Name of the unzipped file
-        file : str
-            Name of the zipped file.
+        archive_name :
+            Name of the archive.
 
         Returns
         -------
@@ -263,5 +324,17 @@ class Lcp(Corpus, Extractable):
         }
     ]
 
-    def extract(self):
-        return 0
+    def extract(self, archive_name):
+        """
+
+        Parameters
+        ----------
+        archive_name
+
+        Returns
+        -------
+
+        """
+        with py7zr.SevenZipFile(archive_name, mode='r',
+                                password='secret') as z:
+            z.extractall()
