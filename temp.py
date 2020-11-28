@@ -2,7 +2,7 @@
 import os
 import pickle
 
-from lecce.information.pubmed import unzip, extract_abstract_texts
+from lecce.information.corpus import Pubmed
 
 
 def main():
@@ -10,7 +10,7 @@ def main():
         for filename in files:
             filepath = subdir + os.sep + filename
 
-            texts = extract_abstract_texts(filepath)
+            texts = Pubmed.extract_abstract_texts(filepath)
 
             with open(f"{filename}.txt", "w", encoding='utf-8') as F:
                 for row in texts:
