@@ -1,5 +1,7 @@
+import gzip
 import os
 import re
+import shutil
 import tarfile
 import xml.etree.ElementTree as ET
 from abc import ABC, abstractmethod
@@ -119,7 +121,7 @@ class Extractable(ABC):
     """
 
     @abstractmethod
-    def extract(self, archive_name):
+    def extract_archive(self, archive_name):
         """Extract files from a compressed archive, such as .zip,
         .tgz or .7z.
 
@@ -197,7 +199,7 @@ class Europarl(Corpus, Extractable):
         """
         pass
 
-    def extract(self, archive_name):
+    def extract_archive(self, archive_name):
         """Extract files from a .tgz archive.
 
         Parameters
@@ -239,6 +241,15 @@ class Pubmed(Corpus, Extractable):
     urls = [{"url": "ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline",
              "name": "pubmed"}]
 
+    def __init__(self, file_limit=600):
+        """
+
+        Parameters
+        ----------
+        file_limit
+        """
+        self.file_limit = file_limit
+
     # TODO invullen
     # Aangezien pubmed data via FTP ingeladen moet worden, moeten we
     # de functie overriden
@@ -253,29 +264,37 @@ class Pubmed(Corpus, Extractable):
         -------
 
         """
-        ftp = FTP("ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline")
-        ftp.connect(port=21)
-        ftp.getwelcome()
+        with FTP(host="ftp.ncbi.nlm.nih.gov", user='anonymous',
+                 passwd='') as ftp:
+            ftp.cwd("pubmed/baseline")
+            ftp.dir()
 
-    def extract(self, archive_name):
+            requested_files = [filename for filename in ftp.nlst() if
+                               filename.endswith('.gz')]
+
+            # Iterate through all the filenames
+            # and retrieve them one at a time
+            for filename in requested_files[:self.file_limit]:
+                with open(f"{destination_dir}/pubmed/{filename}", 'wb') as f:
+                    ftp.retrbinary('RETR %s' % filename, f.write)
+
+    def extract_archive(self, archive_name):
         """Unzips a given file and stores its content in a new file.
 
         Parameters
         ----------
-        archive_name :
-            Name of the archive.
+        archive_name : str
+            Name of the zipped file.
 
         Returns
         -------
 
         """
-        # if not new_filename:
-        #     new_filename = file.split('.')[:2]
-        #
-        # with gzip.open(file, 'rb') as f_in:
-        #     with open(f'{".".join(new_filename)}', 'wb') as f_out:
-        #         shutil.copyfileobj(f_in, f_out)
-        pass
+        new_filename = archive_name.split('.')[:2]
+
+        with gzip.open(archive_name, 'rb') as f_in:
+            with open(f'{".".join(new_filename)}', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
 
     @staticmethod
     def extract_abstract_texts(file):
@@ -304,10 +323,33 @@ class Pubmed(Corpus, Extractable):
 
         return texts
 
+    def corpus_to_txt(self, directory):
+        """
+
+        Parameters
+        ----------
+        directory
+
+        Returns
+        -------
+
+        """
+        for subdir, dirs, files in os.walk(directory):
+            for filename in files:
+                filepath = subdir + os.sep + filename
+
+                texts = self.extract_abstract_texts(filepath)
+
+                with open(f"{filename}.txt", "w", encoding='utf-8') as F:
+                    for row in texts:
+                        F.write(f"{row}\n")
+
+                os.remove(filepath)
+
 
 class Lcp(Corpus, Extractable):
     """
-
+    asdsadsad
     """
     urls = [
         {
@@ -324,8 +366,8 @@ class Lcp(Corpus, Extractable):
         }
     ]
 
-    def extract(self, archive_name):
-        """
+    def extract_archive(self, archive_name):
+        """Extracts information
 
         Parameters
         ----------
@@ -335,6 +377,7 @@ class Lcp(Corpus, Extractable):
         -------
 
         """
+        # FIXME wachtwoord niet hardcoden
         with py7zr.SevenZipFile(archive_name, mode='r',
                                 password='YellowDolphin73!') as z:
             z.extractall(path="data")
