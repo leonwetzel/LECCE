@@ -14,6 +14,28 @@ from tqdm import tqdm
 from lecce.information.utils import is_directory_empty
 
 
+class Extractable(ABC):
+    """
+    Class for data sources that are either zipped, tarred
+    or whatsoever.
+    """
+
+    @abstractmethod
+    def extract_archive(self, archive_name):
+        """Extract files from a compressed archive, such as .zip,
+        .tgz or .7z.
+
+        Parameters
+        ----------
+        archive_name : name of the archive file
+
+        Returns
+        -------
+
+        """
+        pass
+
+
 class Corpus:
     """
     The base class for functionality for downloading
@@ -114,28 +136,6 @@ class Corpus:
                          pair["filename"] == filename]
 
 
-class Extractable(ABC):
-    """
-    Class for data sources that are either zipped, tarred
-    or whatsoever.
-    """
-
-    @abstractmethod
-    def extract_archive(self, archive_name):
-        """Extract files from a compressed archive, such as .zip,
-        .tgz or .7z.
-
-        Parameters
-        ----------
-        archive_name : name of the archive file
-
-        Returns
-        -------
-
-        """
-        pass
-
-
 class Bible(Corpus):
     """
     Class for Bible-like corpora.
@@ -149,14 +149,18 @@ class Bible(Corpus):
                       "the Bible\n",
                 end="End of the Project Gutenberg EBook of The King "
                     "James Bible\n"):
-        """
+        """Prepares the bible corpus by removing dirty lines of text.
 
         Parameters
         ----------
         filename : str
+            Name of the file that contains the bible corpus.
         output_filename : str
+            Name of the output file.
         start : str
+            String indicating where the bible corpus starts in a file.
         end : str
+            String indicating where the bible corpus ends in a file.
 
         Returns
         -------
@@ -200,7 +204,8 @@ class Europarl(Corpus, Extractable):
         pass
 
     def extract_archive(self, archive_name):
-        """Extract files from a .tgz archive.
+        """Extract files from a .tgz archive. The archive file
+        will be removed after extraction as well.
 
         Parameters
         ----------
@@ -214,6 +219,7 @@ class Europarl(Corpus, Extractable):
         with tarfile.open(archive_name, "r") as tar:
             tar.extractall(path="data",
                            members=self.get_english_proceedings(tar))
+        os.remove(f"data/{archive_name}")
 
     @staticmethod
     def get_english_proceedings(members):
@@ -238,45 +244,56 @@ class Europarl(Corpus, Extractable):
 
 
 class Pubmed(Corpus, Extractable):
-    urls = [{"url": "ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline",
-             "name": "pubmed"}]
+    urls = [{"url": "ftp.ncbi.nlm.nih.gov",
+             "name": "pubmed1"}]
 
-    def __init__(self, file_limit=600):
-        """
+    def __init__(self, file_limit=500):
+        """Initiates a Pubmed object
 
         Parameters
         ----------
-        file_limit
+        file_limit : int
+            Indicates how many files should be
+            downloaded from the website.
         """
         self.file_limit = file_limit
 
-    # TODO invullen
-    # Aangezien pubmed data via FTP ingeladen moet worden, moeten we
-    # de functie overriden
     def download(self, destination_dir="data"):
-        """
+        """Downloads Pubmed corpora from the website of the
+        National Center for Biotechnology Information.
 
         Parameters
         ----------
-        destination_dir
+        destination_dir : str
+            Name of the directory in which the data should
+            be stored.
 
         Returns
         -------
 
         """
-        with FTP(host="ftp.ncbi.nlm.nih.gov", user='anonymous',
+        target_dir = f"{destination_dir}/{self.urls[0]['name']}"
+        if not os.path.isdir(target_dir):
+            os.mkdir(target_dir)
+
+        with FTP(host=self.urls[0]['url'], user='anonymous',
                  passwd='') as ftp:
             ftp.cwd("pubmed/baseline")
-            ftp.dir()
 
-            requested_files = [filename for filename in ftp.nlst() if
-                               filename.endswith('.gz')]
+            # filter files
+            requested_files = [filename for filename in ftp.nlst()
+                               if filename.endswith('.gz')]
 
-            # Iterate through all the filenames
-            # and retrieve them one at a time
-            for filename in requested_files[:self.file_limit]:
-                with open(f"{destination_dir}/pubmed/{filename}", 'wb') as f:
-                    ftp.retrbinary('RETR %s' % filename, f.write)
+            # Iterate through the filenames
+            # and retrieve plus extract them one at a time
+            for archive_name in requested_files[:self.file_limit]:
+                with open(f"{target_dir}/{archive_name}", 'wb') as f:
+                    ftp.retrbinary('RETR %s' % archive_name, f.write)
+
+                # extract file from archive
+                self.extract_archive(f"{target_dir}/{archive_name}")
+                # remove archive
+                os.remove(f"{target_dir}/{archive_name}")
 
     def extract_archive(self, archive_name):
         """Unzips a given file and stores its content in a new file.
@@ -340,7 +357,8 @@ class Pubmed(Corpus, Extractable):
 
                 texts = self.extract_abstract_texts(filepath)
 
-                with open(f"{filename}.txt", "w", encoding='utf-8') as F:
+                with open(f"{filename}.txt", "w",
+                          encoding='utf-8') as F:
                     for row in texts:
                         F.write(f"{row}\n")
 
