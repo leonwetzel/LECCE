@@ -244,6 +244,9 @@ class Europarl(Corpus, Extractable):
 
 
 class Pubmed(Corpus, Extractable):
+    """
+    Class for Pubmed corpora.
+    """
     urls = [{"url": "ftp.ncbi.nlm.nih.gov",
              "name": "pubmed1"}]
 
@@ -367,7 +370,7 @@ class Pubmed(Corpus, Extractable):
 
 class Lcp(Corpus, Extractable):
     """
-    asdsadsad
+    Class for LCP data.
     """
     urls = [
         {
