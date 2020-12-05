@@ -201,7 +201,18 @@ class Europarl(Corpus, Extractable):
         -------
 
         """
-        pass
+        corpus = []
+        with open(filename, "r") as F:
+            lines = F.readlines()
+
+        lines = [line.strip() for line in lines if line]
+
+        for line in lines:
+            if not line.startswith('<'):
+                corpus.append(line)
+
+        with open(output_filename, "w") as f:
+            f.writelines(corpus)
 
     def extract_archive(self, archive_name):
         """Extract files from a .tgz archive. The archive file
@@ -265,6 +276,10 @@ class Pubmed(Corpus, Extractable):
         """Downloads Pubmed corpora from the website of the
         National Center for Biotechnology Information.
 
+        Although the FTP server can be accessed without
+        credentials, we need to provide the default username
+        'anonymous' and an empty password.
+
         Parameters
         ----------
         destination_dir : str
@@ -281,6 +296,7 @@ class Pubmed(Corpus, Extractable):
 
         with FTP(host=self.urls[0]['url'], user='anonymous',
                  passwd='') as ftp:
+            # change to right directory
             ftp.cwd("pubmed/baseline")
 
             # filter files
