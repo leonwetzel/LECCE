@@ -36,7 +36,7 @@ class Extractable(ABC):
         pass
 
 
-class Corpus:
+class Corpus(ABC):
     """
     The base class for functionality for downloading
     and processing corpora.
@@ -134,6 +134,16 @@ class Corpus:
             self.urls = [pair for pair in self.urls if
                          pair["url"] == url and
                          pair["filename"] == filename]
+
+    @abstractmethod
+    def corpus_to_list(self):
+        """
+
+        Returns
+        -------
+
+        """
+        pass
 
 
 class Bible(Corpus):
