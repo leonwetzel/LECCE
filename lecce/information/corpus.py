@@ -259,7 +259,7 @@ class Pubmed(Corpus, Extractable):
     Class for Pubmed corpora.
     """
     urls = [{"url": "ftp.ncbi.nlm.nih.gov",
-             "name": "pubmed1"}]
+             "name": "pubmed"}]
 
     def __init__(self, file_limit=500):
         """Initiates a Pubmed object
@@ -306,13 +306,16 @@ class Pubmed(Corpus, Extractable):
             # Iterate through the filenames
             # and retrieve plus extract them one at a time
             for archive_name in requested_files[:self.file_limit]:
-                with open(f"{target_dir}/{archive_name}", 'wb') as f:
+                with open(f"{target_dir}/{archive_name}", 'wb',
+                          encoding='utf-8') as f:
                     ftp.retrbinary('RETR %s' % archive_name, f.write)
 
                 # extract file from archive
                 self.extract_archive(f"{target_dir}/{archive_name}")
                 # remove archive
                 os.remove(f"{target_dir}/{archive_name}")
+
+        self.corpus_to_txt(target_dir)
 
     def extract_archive(self, archive_name):
         """Unzips a given file and stores its content in a new file.
@@ -376,7 +379,7 @@ class Pubmed(Corpus, Extractable):
 
                 texts = self.extract_abstract_texts(filepath)
 
-                with open(f"{filename}.txt", "w",
+                with open(f"{directory}/{filename}.txt", "w",
                           encoding='utf-8') as F:
                     for row in texts:
                         F.write(f"{row}\n")
