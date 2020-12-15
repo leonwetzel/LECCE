@@ -10,6 +10,9 @@ from ftplib import FTP
 import py7zr
 import requests
 from tqdm import tqdm
+from bs4 import BeautifulSoup
+
+from nltk.tokenize import sent_tokenize
 
 from lecce.information.utils import is_directory_empty
 
@@ -42,6 +45,7 @@ class Corpus(ABC):
     and processing corpora.
     """
     urls = []
+    sentences = []
 
     def download(self, destination_dir="data"):
         """Downloads contents from given urls.
@@ -85,7 +89,8 @@ class Corpus(ABC):
             total_size_in_bytes = int(
                 response.headers.get('content-length'))
 
-            with open(rf"{destination_dir}/{url['name']}", 'wb') as f:
+            with open(rf"{destination_dir}/{url['name']}", 'wb',
+                      encoding='utf-8') as f:
                 with tqdm(total=total_size_in_bytes, unit="B",
                           unit_scale=True, desc=url["name"],
                           initial=0, ascii=True) as pbar:
@@ -136,7 +141,7 @@ class Corpus(ABC):
                          pair["filename"] == filename]
 
     @abstractmethod
-    def corpus_to_list(self):
+    def corpus_to_list(self, directory_or_filename):
         """
 
         Returns
@@ -150,45 +155,51 @@ class Bible(Corpus):
     """
     Class for Bible-like corpora.
     """
-    urls = [{"url": "http://www.gutenberg.org/files/10/10.txt",
-             "name": "bible.txt"}]
+    urls = [{"url": "https://www.gutenberg.org/files/10900/10900-h/10900-h.htm",
+             "name": "bible.html"}]
 
     @staticmethod
-    def prepare(filename, output_filename,
-                start="The Old Testament of the King James Version of "
-                      "the Bible\n",
-                end="End of the Project Gutenberg EBook of The King "
-                    "James Bible\n"):
-        """Prepares the bible corpus by removing dirty lines of text.
-
-        Parameters
-        ----------
-        filename : str
-            Name of the file that contains the bible corpus.
-        output_filename : str
-            Name of the output file.
-        start : str
-            String indicating where the bible corpus starts in a file.
-        end : str
-            String indicating where the bible corpus ends in a file.
+    def prepare(filename, output_filename="cleaned_bible.txt"):
+        """
 
         Returns
         -------
 
         """
-        with open(filename, "r", encoding='utf-8') as F:
-            original_corpus = F.readlines()
-            start_index = original_corpus.index(start)
-            end_index = original_corpus.index(end)
-            corpus = original_corpus[start_index:end_index]
+        with open(filename) as fp:
+            soup = BeautifulSoup(fp, 'html.parser')
 
-            new_corpus = [line.strip() for line in corpus]
-            new_corpus = [re.sub(r'^\d+:\d+', '', line) for line
-                          in new_corpus if line]
+        phrases = soup.find_all('p')
+        corpus = []
+        for phrase in phrases:
+            content = phrase.contents[0]
+            corpus.append(content)
 
-            with open(output_filename, 'w', encoding='utf-8') as f:
-                for line in new_corpus:
-                    f.write(f"{line.strip()}\n")
+        corpus = [line.strip() for line in corpus]
+        corpus = [re.sub(r'^\d+:\d+', '', line) for line
+                      in corpus if line]
+        corpus = [' '.join(line.split()) for line in corpus]
+        corpus = [line.split('.') for line in corpus]
+        corpus = [line for sublist in corpus for line in sublist if line]
+
+        with open(output_filename, 'w', encoding='utf-8') as f:
+            for line in corpus:
+                f.write(f"{line.strip()}\n")
+
+    def corpus_to_list(self, directory_or_filename="cleaned_bible.txt"):
+        """
+
+        Parameters
+        ----------
+        directory_or_filename
+
+        Returns
+        -------
+
+        """
+        with open(directory_or_filename, "r", encoding='utf-8') as F:
+            corpus = F.readlines()
+        return [line.strip() for line in corpus]
 
 
 class Europarl(Corpus, Extractable):
@@ -212,17 +223,18 @@ class Europarl(Corpus, Extractable):
 
         """
         corpus = []
-        with open(filename, "r") as F:
+        with open(filename, "r", encoding='utf-8') as F:
             lines = F.readlines()
 
         lines = [line.strip() for line in lines if line]
 
         for line in lines:
-            if not line.startswith('<'):
+            if not line.startswith('<') and line.strip():
                 corpus.append(line)
 
-        with open(output_filename, "w") as f:
-            f.writelines(corpus)
+        with open(output_filename, "w", encoding='utf-8') as f:
+            for line in corpus:
+                f.write(f"{line}\n")
 
     def extract_archive(self, archive_name):
         """Extract files from a .tgz archive. The archive file
@@ -262,6 +274,49 @@ class Europarl(Corpus, Extractable):
                 continue
             if extension == ".txt" and language == "en":
                 yield tarinfo
+
+    def corpus_to_list(self, directory_or_filename="txt"):
+        """
+
+        Parameters
+        ----------
+        directory_or_filename
+
+        Returns
+        -------
+
+        """
+        corpus = []
+        for subdir, dirs, files in os.walk(directory_or_filename):
+            for filename in files:
+                filepath = subdir + os.sep + filename
+
+                with open(filepath, 'r', encoding='utf-8') as F:
+                    subcorpus = F.readlines()
+
+                subcorpus = [line.strip() for line in subcorpus]
+                subcorpus = [line for line in subcorpus if line]
+                subcorpus = [sent_tokenize(line) for line in subcorpus]
+                subcorpus = [sentence for sublist in subcorpus for sentence
+                             in sublist]
+                corpus.extend(subcorpus)
+        return corpus
+
+    def clean_corpus(self, directory):
+        """Strips meta information from the Europarl files.
+
+        Parameters
+        ----------
+        directory
+
+        Returns
+        -------
+
+        """
+        for subdir, dirs, files in os.walk(directory):
+            for filename in files:
+                filepath = subdir + os.sep + filename
+                self.prepare(filepath, f"{subdir}/{filename}")
 
 
 class Pubmed(Corpus, Extractable):
@@ -365,11 +420,7 @@ class Pubmed(Corpus, Extractable):
         tree = ET.parse(file)
         root = tree.getroot()
         abstracts = root.findall('.//AbstractText')
-
-        texts = []
-        for abstract in abstracts:
-            texts.append(abstract.text)
-
+        texts = [abstract.text for abstract in abstracts]
         return texts
 
     def corpus_to_txt(self, directory):
@@ -386,15 +437,29 @@ class Pubmed(Corpus, Extractable):
         for subdir, dirs, files in os.walk(directory):
             for filename in files:
                 filepath = subdir + os.sep + filename
-
                 texts = self.extract_abstract_texts(filepath)
 
                 with open(f"{directory}/{filename}.txt", "w",
                           encoding='utf-8') as F:
                     for row in texts:
                         F.write(f"{row}\n")
-
                 os.remove(filepath)
+
+    def corpus_to_list(self, directory_or_filename):
+        """
+
+        Parameters
+        ----------
+        directory_or_filename
+
+        Returns
+        -------
+
+        """
+        for subdir, dirs, files in os.walk(directory_or_filename):
+            for filename in files:
+                filepath = subdir + os.sep + filename
+        return []
 
 
 class Lcp(Corpus, Extractable):

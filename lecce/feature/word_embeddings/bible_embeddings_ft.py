@@ -37,7 +37,7 @@ def pre_process(location):
 
 def bible_embeddings(processed_bible):
     #Parameters: processed bible file
-    #Returns: writes bible embeddings to file
+    #Returns: writes bible word_embeddings to file
     model = FastText()
     model.build_vocab(sentences=processed_bible)
     model.train(sentences=processed_bible, total_examples=len(processed_bible), epochs=10)

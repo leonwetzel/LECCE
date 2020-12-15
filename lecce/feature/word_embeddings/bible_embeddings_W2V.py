@@ -55,7 +55,7 @@ embedding_lofl = pre_process(location='bible.txt')
 
 def bible_embeddings(processed_bible):
     #Parameters: processed bible file
-    #Returns: writes bible embeddings to file
+    #Returns: writes bible word_embeddings to file
     model = Word2Vec(processed_bible, min_count = 2)
     print(model)
     model.wv.save_word2vec_format('bible_embeddings_W2V.bin')
