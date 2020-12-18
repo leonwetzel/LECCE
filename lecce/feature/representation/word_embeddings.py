@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 from gensim.models import Word2Vec, FastText
 
-from lecce.feature.word_embeddings.google import download_google_news_vectors
+from lecce.feature.representation.google import download_google_news_vectors
 
 
 class Embedder(ABC):
