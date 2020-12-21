@@ -3,6 +3,7 @@ import gzip
 import os
 import re
 import shutil
+import string
 import tarfile
 import xml.etree.ElementTree as ET
 from abc import ABC, abstractmethod
@@ -10,10 +11,9 @@ from ftplib import FTP
 
 import py7zr
 import requests
-from tqdm import tqdm
 from bs4 import BeautifulSoup
-
-from nltk.tokenize import sent_tokenize
+from nltk.tokenize import sent_tokenize, word_tokenize
+from tqdm import tqdm
 
 from lecce.information.utils import is_directory_empty
 
@@ -95,10 +95,10 @@ class Corpus(ABC):
                 with tqdm(total=total_size_in_bytes, unit="B",
                           unit_scale=True, desc=url["name"],
                           initial=0, ascii=True) as pbar:
-                    for ch in response.iter_content(chunk_size=1024):
-                        if ch:
-                            f.write(ch)
-                            pbar.update(len(ch))
+                    for chunk in response.iter_content(chunk_size=1024):
+                        if chunk:
+                            f.write(chunk)
+                            pbar.update(len(chunk))
 
     def add_url(self, url, filename):
         """Add a URL linking to a data source.
@@ -142,7 +142,7 @@ class Corpus(ABC):
                          pair["filename"] == filename]
 
     @abstractmethod
-    def corpus_to_list(self, directory_or_filename):
+    def to_list_of_sentences(self, directory_or_filename):
         """
 
         Returns
@@ -178,7 +178,7 @@ class Bible(Corpus):
 
         corpus = [line.strip() for line in corpus]
         corpus = [re.sub(r'^\d+:\d+', '', line) for line
-                      in corpus if line]
+                  in corpus if line]
         corpus = [' '.join(line.split()) for line in corpus]
         corpus = [line.split('.') for line in corpus]
         corpus = [line for sublist in corpus for line in sublist if line]
@@ -187,7 +187,8 @@ class Bible(Corpus):
             for line in corpus:
                 f.write(f"{line.strip()}\n")
 
-    def corpus_to_list(self, directory_or_filename="cleaned_bible.txt"):
+    def to_list_of_sentences(self,
+                             directory_or_filename="cleaned_bible.txt"):
         """
 
         Parameters
@@ -200,7 +201,7 @@ class Bible(Corpus):
         """
         with open(directory_or_filename, "r", encoding='utf-8') as F:
             corpus = F.readlines()
-        return [line.strip() for line in corpus]
+        return [word_tokenize(line.strip()) for line in corpus]
 
 
 class Europarl(Corpus, Extractable):
@@ -276,7 +277,7 @@ class Europarl(Corpus, Extractable):
             if extension == ".txt" and language == "en":
                 yield tarinfo
 
-    def corpus_to_list(self, directory_or_filename="txt"):
+    def to_list_of_sentences(self, directory_or_filename="txt"):
         """
 
         Parameters
@@ -298,8 +299,8 @@ class Europarl(Corpus, Extractable):
                 subcorpus = [line.strip() for line in subcorpus]
                 subcorpus = [line for line in subcorpus if line]
                 subcorpus = [sent_tokenize(line) for line in subcorpus]
-                subcorpus = [sentence for sublist in subcorpus for sentence
-                             in sublist]
+                subcorpus = [word_tokenize(sentence) for sublist in subcorpus
+                             for sentence in sublist]
                 corpus.extend(subcorpus)
         return corpus
 
@@ -372,8 +373,7 @@ class Pubmed(Corpus, Extractable):
             # Iterate through the filenames
             # and retrieve plus extract them one at a time
             for archive_name in requested_files[:self.file_limit]:
-                with open(f"{target_dir}/{archive_name}", 'wb',
-                          encoding='utf-8') as f:
+                with open(f"{target_dir}/{archive_name}", 'wb') as f:
                     ftp.retrbinary('RETR %s' % archive_name, f.write)
 
                 # extract file from archive
@@ -446,7 +446,7 @@ class Pubmed(Corpus, Extractable):
                         F.write(f"{row}\n")
                 os.remove(filepath)
 
-    def corpus_to_list(self, directory_or_filename):
+    def to_list_of_sentences(self, directory_or_filename):
         """
 
         Parameters
@@ -457,10 +457,31 @@ class Pubmed(Corpus, Extractable):
         -------
 
         """
+        corpus = []
+        counter = 0
         for subdir, dirs, files in os.walk(directory_or_filename):
+            total = len(files)
             for filename in files:
                 filepath = subdir + os.sep + filename
-        return []
+
+                with open(filepath, "r", encoding="utf-8") as F:
+                    abstracts = F.readlines()
+
+                    if not abstracts: continue
+
+                sentences = [
+                    sent_tokenize(abstract.strip()) for abstract in abstracts
+                ]
+                sentences = [
+                    word_tokenize(sentence.translate(
+                        str.maketrans('', '', string.punctuation))
+                    ) for sublist in sentences for sentence in sublist
+                ]
+
+                corpus.extend(sentences)
+                counter += 1
+                print(f"Processed {counter} of {total} files!")
+        return corpus
 
 
 class Lcp(Corpus, Extractable):
