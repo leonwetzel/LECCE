@@ -31,3 +31,22 @@ from the website of the National Center for Biotechnology Information
 >>> pm = Pubmed(file_limit=200)
 >>> pm.download()
 ```
+
+## Converting text to word embeddings
+
+LECCE contains functionality to convert text from our various sources
+to word embeddings, which can be either word2vec or fasttext-based.
+
+### word2vec
+
+In the code sample below, you can see the steps to transform data from Pubmed
+into word2vec embeddings. The ```__init__``` function of ```Word2vecEmbedder```
+can either create a new word2vec model (based on a given corpus) or load an
+ existing model. It is also possible to use the GoogleNews-vectors model, which
+ is particullary suitable for development work and testing. 
+
+```python
+>>> from lecce.feature.representation.word_embeddings import Word2VecEmbedder
+>>> corpus = pm.to_list_of_sentences("data/pubmed")
+>>> embedder = Word2VecEmbedder(model_name=None, corpus=corpus, directory="embeddings")
+```
