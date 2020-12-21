@@ -373,10 +373,12 @@ class Pubmed(Corpus, Extractable):
             # Iterate through the filenames
             # and retrieve plus extract them one at a time
             for archive_name in requested_files[:self.file_limit]:
+                print(f"Downloading files from {self.urls[0]['url']}...")
                 with open(f"{target_dir}/{archive_name}", 'wb') as f:
                     ftp.retrbinary('RETR %s' % archive_name, f.write)
 
                 # extract file from archive
+                print("Extracting files and related abstracts...")
                 self.extract_archive(f"{target_dir}/{archive_name}")
                 # remove archive
                 os.remove(f"{target_dir}/{archive_name}")
@@ -447,15 +449,19 @@ class Pubmed(Corpus, Extractable):
                 os.remove(filepath)
 
     def to_list_of_sentences(self, directory_or_filename):
-        """
+        """Prepares corpus for transformation to word embeddings,
+        in line with the format that Gensim requires for the operation.
 
         Parameters
         ----------
-        directory_or_filename
+        directory_or_filename : str
+            Name of either a directory or a file,
+             containing the relevant corpus.
 
         Returns
         -------
-
+        corpus : list
+            List of lists, containing tokens per sentence element.
         """
         corpus = []
         counter = 0
