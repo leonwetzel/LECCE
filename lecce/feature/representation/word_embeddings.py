@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
+import os
 from abc import ABC, abstractmethod
 
-from gensim.models import Word2Vec, FastText
+from gensim.models import Word2Vec, FastText, KeyedVectors
 
 from lecce.feature.representation.google import download_google_news_vectors
+
+GOOGLE_NEWS_VECTORS = "GoogleNews-vectors.bin"
+EMBEDDINGS_DIR = "embeddings"
 
 
 class Embedder(ABC):
@@ -29,7 +33,7 @@ class Embedder(ABC):
         self.directory = directory
 
     @abstractmethod
-    def transform(self):
+    def transform(self, token):
         pass
 
 
@@ -71,12 +75,26 @@ class Word2VecEmbedder(Embedder):
                                   max_final_vocab=None)
             self.model.save(f"{directory}/{model_name}")
         else:
-            download_google_news_vectors(
-                destination_name=f"{directory}/GoogleNews-vectors.bin"
-            )
+            if not os.path.isfile(f"{EMBEDDINGS_DIR}/{GOOGLE_NEWS_VECTORS}"):
+                download_google_news_vectors(
+                    destination_name=f"{directory}/{GOOGLE_NEWS_VECTORS}"
+                )
+            self.model = Word2Vec.load(f"{directory}/{GOOGLE_NEWS_VECTORS}")
 
-    def transform(self):
-        pass
+    def transform(self, token):
+        """Transforms a given token into a word embedding.
+
+        Parameters
+        ----------
+        token : str
+            Token that needs to be transformed into a word embedding.
+
+        Returns
+        -------
+        vector
+            Word embedding of a given token in vector form.
+        """
+        return self.model.wv[token]
 
 
 class FastTextEmbedder(Embedder):
@@ -117,9 +135,13 @@ class FastTextEmbedder(Embedder):
                                   max_final_vocab=None)
             self.model.save(f"{directory}/{model_name}")
         else:
-            download_google_news_vectors(
-                destination_name=f"{directory}/GoogleNews-vectors.bin"
-            )
+            # FIXME this part of code does not make sense,
+            # as the Google News vectors are word2vec based...
+            if not os.path.isfile(f"{EMBEDDINGS_DIR}/{GOOGLE_NEWS_VECTORS}"):
+                download_google_news_vectors(
+                    destination_name=f"{directory}/{GOOGLE_NEWS_VECTORS}"
+                )
+            self.model = Word2Vec.load(f"{directory}/{GOOGLE_NEWS_VECTORS}")
 
-    def transform(self):
+    def transform(self, token):
         pass
