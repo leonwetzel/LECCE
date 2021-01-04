@@ -1,7 +1,6 @@
 import unittest
 
-from lecce.information.utils import is_directory_empty
-from lecce.definitions import ROOT_DIR
+from lecce.utilities.tools import is_directory_empty
 
 
 class TestUtilsMethods(unittest.TestCase):
