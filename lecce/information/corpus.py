@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup
 from nltk.tokenize import sent_tokenize, word_tokenize
 from tqdm import tqdm
 
-from lecce.information.utils import is_directory_empty
+from lecce.utilities.tools import is_directory_empty
 
 
 class Extractable(ABC):
@@ -328,7 +328,7 @@ class Pubmed(Corpus, Extractable):
     urls = [{"url": "ftp.ncbi.nlm.nih.gov",
              "name": "pubmed"}]
 
-    def __init__(self, file_limit=500):
+    def __init__(self, file_limit=200):
         """Initiates a Pubmed object
 
         Parameters

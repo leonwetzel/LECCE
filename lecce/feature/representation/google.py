@@ -5,6 +5,8 @@ import os
 import requests
 from tqdm import tqdm
 
+GOOGLE_NEWS_VECTORS = "GoogleNews-vectors.bin"
+
 
 def download_google_news_vectors(
         url="https://s3.amazonaws.com/dl4j-distribution/" \
