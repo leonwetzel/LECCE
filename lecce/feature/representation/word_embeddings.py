@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 
 from gensim.models import Word2Vec, FastText
 import gensim.downloader
+import numpy as np
 
 from lecce.feature.representation.google import GOOGLE_NEWS_VECTORS, \
     download_google_news_vectors
@@ -32,10 +33,33 @@ class Embedder(ABC):
         self.model_name = model_name
         self.corpus = corpus
         self.directory = directory
+        self.model = None
 
     @abstractmethod
     def transform(self, token):
         pass
+
+    def get_mean_vector(self, words):
+        """
+
+        Parameters
+        ----------
+        model :
+        words : iterable
+
+        Returns
+        -------
+
+        """
+        # remove out-of-vocabulary words
+        words = [word for word in words
+                 if word in self.model.key_to_index]
+        # generate embeddings per word
+        embeddings = [self.model[word] for word in words]
+        if len(words) >= 1:
+            return np.mean(embeddings, axis=0)
+        else:
+            return []
 
 
 class Word2VecEmbedder(Embedder):
@@ -67,7 +91,7 @@ class Word2VecEmbedder(Embedder):
             model_name = input("Please enter the filename for your new "
                                "word2vec model (including extension): ")
             self.model = Word2Vec(sentences=corpus, corpus_file=None,
-                                  vector_size=300, alpha=0.025,
+                                  vector_size=200, alpha=0.025,
                                   window=5,
                                   min_count=1, max_vocab_size=None,
                                   sample=0.001, seed=1, workers=3,
@@ -107,7 +131,7 @@ class FastTextEmbedder(Embedder):
     with LECCE functionality.
     """
 
-    def __init__(self, model_name="my_first_ft_model.bin",
+    def __init__(self, model_name=None,
                  corpus=None, directory="embeddings"):
         """
 
@@ -131,7 +155,7 @@ class FastTextEmbedder(Embedder):
                                "fastText model (including extension): ")
             self.model = FastText(sentences=corpus, corpus_file=None,
                                   sg=0, hs=0,
-                                  vector_size=300, alpha=0.025,
+                                  vector_size=200, alpha=0.025,
                                   window=5,
                                   min_count=5, max_vocab_size=None,
                                   word_ngrams=1, sample=0.001, seed=1,
@@ -148,7 +172,6 @@ class FastTextEmbedder(Embedder):
         else:
             self.model = gensim.downloader.load(
                 'fasttext-wiki-news-subwords-300')
-
 
     def transform(self, token):
         """

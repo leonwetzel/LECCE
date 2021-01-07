@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import csv
+import string
 import sys
 
 import pandas as pd
@@ -10,9 +11,10 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
 from textstat import textstat
+import numpy as np
 
 from lecce.feature.representation.word_embeddings import \
-    Word2VecEmbedder
+    Word2VecEmbedder, FastTextEmbedder
 
 COLUMN_NAMES = ['id', 'subcorpus', 'sentence', 'token', 'complexity']
 MULTI_TRIAL_FILE_NAME = "lcp_multi_trial.tsv"
@@ -51,24 +53,8 @@ def main():
     X_trial, y_trial = extract_features(trial_data,
                                         use_word_embeddings=True), \
                        trial_data[['complexity']]
-    X_train = X_train[['sentence_length', 'sentence_word_count',
-                       'sentence_avg_word_length',
-                       'sentence_vowel_count',
-                       'subcorpus',
-                       'sentence_gunning_fog',
-                       'sentence_flesch_reading_ease',
-                       'sentence_dale_chall',
-                       'sentence_syllable_count',
-                       'token_length', 'token_vowel_count']]
-    X_trial = X_trial[['sentence_length', 'sentence_word_count',
-                       'sentence_avg_word_length',
-                       'sentence_vowel_count',
-                       'subcorpus',
-                       'sentence_gunning_fog',
-                       'sentence_flesch_reading_ease',
-                       'sentence_dale_chall',
-                       'sentence_syllable_count',
-                       'token_length', 'token_vowel_count']]
+    X_train.drop(["complexity", "id", "token"], axis=1, inplace=True)
+    X_trial.drop(["complexity", "id", "token"], axis=1, inplace=True)
 
     # print(X_train)
 
@@ -109,7 +95,7 @@ def main():
                        title="Actual and predicted complexity scores"
                              " by LECCE (single token)",
                        xlabel="Sample ID", ylabel="Complexity score",
-                       grid=False, figsize=(20,9)
+                       grid=False, figsize=(20, 9)
                        ).get_figure()
     fig.savefig("results.png")
 
@@ -128,11 +114,13 @@ def load(filename):
 
 
 def extract_features(dataframe, use_token=True,
-                     use_word_embeddings=True):
+                     use_word_embeddings=True,
+                     use_readability_measures=False):
     """
 
     Parameters
     ----------
+    use_readability_measures
     dataframe
     use_token
     use_word_embeddings
@@ -152,22 +140,23 @@ def extract_features(dataframe, use_token=True,
     dataframe["subcorpus"] = \
         ENCODER.fit_transform(dataframe["subcorpus"])
 
-    dataframe["sentence_gunning_fog"] = \
-        dataframe.apply(lambda row:
-                        textstat.gunning_fog(row['sentence']),
-                        axis=1)
-    dataframe["sentence_flesch_reading_ease"] = \
-        dataframe.apply(lambda row:
-                        textstat.flesch_reading_ease(row['sentence']),
-                        axis=1)
-    dataframe["sentence_dale_chall"] = \
-        dataframe.apply(lambda row:
-                        textstat.dale_chall_readability_score(
-                            row['sentence']), axis=1)
-    dataframe["sentence_syllable_count"] = \
-        dataframe.apply(lambda row:
-                        textstat.syllable_count(row['sentence']),
-                        axis=1)
+    if use_readability_measures:
+        dataframe["sentence_gunning_fog"] = \
+            dataframe.apply(lambda row:
+                            textstat.gunning_fog(row['sentence']),
+                            axis=1)
+        dataframe["sentence_flesch_reading_ease"] = \
+            dataframe.apply(lambda row:
+                            textstat.flesch_reading_ease(row['sentence']),
+                            axis=1)
+        dataframe["sentence_dale_chall"] = \
+            dataframe.apply(lambda row:
+                            textstat.dale_chall_readability_score(
+                                row['sentence']), axis=1)
+        dataframe["sentence_syllable_count"] = \
+            dataframe.apply(lambda row:
+                            textstat.syllable_count(row['sentence']),
+                            axis=1)
 
     if use_token:
         dataframe["token_length"] = [
@@ -179,14 +168,36 @@ def extract_features(dataframe, use_token=True,
         ]
 
     if use_word_embeddings:
-        embedder = Word2VecEmbedder(directory="../embeddings",
-                                    model_name="GoogleNews-vectors.bin")
-        dataframe["w2v_embedding"] = \
+        embedder = FastTextEmbedder()
+
+        dataframe["ft_embedding"] = \
             dataframe.apply(lambda row:
-                            embedder.model.wv[row['sentence']],
+                            get_mean_vector(embedder.model,
+                                            row["sentence"]),
                             axis=1)
 
     return dataframe
+
+
+def get_mean_vector(model, words):
+    """
+
+    Parameters
+    ----------
+    model :
+    words : iterable
+
+    Returns
+    -------
+
+    """
+    # remove out-of-vocabulary words
+    words = [word for word in words if word in model.key_to_index]
+    embeddings = [model[word] for word in words]
+    if len(words) >= 1:
+        return np.mean(embeddings, axis=0)
+    else:
+        return []
 
 
 if __name__ == '__main__':
