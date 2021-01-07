@@ -12,6 +12,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
 from textstat import textstat
 import numpy as np
+import matplotlib.pyplot as plt
 
 from lecce.feature.representation.word_embeddings import \
     Word2VecEmbedder, FastTextEmbedder
@@ -48,18 +49,26 @@ def main():
             " information)!")
 
     X_train, y_train = extract_features(training_data,
-                                        use_word_embeddings=True), \
+                                        use_sentence=False,
+                                        use_word_embeddings=True,
+                                        use_token=False,
+                                        use_readability_measures=False), \
                        training_data[['complexity']]
     X_trial, y_trial = extract_features(trial_data,
-                                        use_word_embeddings=True), \
+                                        use_sentence=False,
+                                        use_word_embeddings=True,
+                                        use_token=False,
+                                        use_readability_measures=False), \
                        trial_data[['complexity']]
-    X_train.drop(["complexity", "id", "token"], axis=1, inplace=True)
-    X_trial.drop(["complexity", "id", "token"], axis=1, inplace=True)
+    tokens = X_train[['token', "sentence"]]
+    X_train.drop(["complexity", "id", "token", "sentence", "subcorpus"],
+                 axis=1, inplace=True)
+    X_trial.drop(["complexity", "id", "token", "sentence", "subcorpus"],
+                 axis=1, inplace=True)
 
-    # print(X_train)
+    print(f"Features used: {list(X_train.columns)}\n")
 
     pipeline = Pipeline([
-        # ('scaler', StandardScaler()),
         ('clf', LinearRegression(n_jobs=-1))
     ])
 
@@ -85,11 +94,11 @@ def main():
           f" {mean_absolute_error(y_trial, y_guess)}")
     print(f"Best parameter combination: {classifier.best_params_}\n")
 
-    # print("Y_trial\tY_guess")
     results = y_trial.merge(pd.DataFrame(y_guess), left_index=True,
                             right_index=True)
-    results.columns = ["Actual", "Predicted"]
-    print(results)
+    results = results.merge(tokens, left_index=True, right_index=True)
+    results.columns = ["Actual", "Predicted", "Token", "Sentence",]
+    print(results[['Actual', "Predicted", "Token"]])
 
     fig = results.plot(kind='bar', rot=0,
                        title="Actual and predicted complexity scores"
@@ -114,12 +123,14 @@ def load(filename):
 
 
 def extract_features(dataframe, use_token=True,
+                     use_sentence=True,
                      use_word_embeddings=True,
                      use_readability_measures=False):
     """
 
     Parameters
     ----------
+    use_sentence
     use_readability_measures
     dataframe
     use_token
@@ -129,16 +140,18 @@ def extract_features(dataframe, use_token=True,
     -------
 
     """
-    dataframe['sentence_length'] = dataframe['sentence'].str.len()
-    dataframe["sentence_word_count"] = dataframe[
-        "sentence"].str.split().str.len()
-    dataframe["sentence_avg_word_length"] = round(
-        dataframe["sentence_length"] / dataframe[
-            "sentence_word_count"]).astype(int)
-    dataframe["sentence_vowel_count"] = dataframe[
-        "sentence"].str.lower().str.count(r'[aeiou]')
     dataframe["subcorpus"] = \
         ENCODER.fit_transform(dataframe["subcorpus"])
+
+    if use_sentence:
+        dataframe['sentence_length'] = dataframe['sentence'].str.len()
+        dataframe["sentence_word_count"] = dataframe[
+            "sentence"].str.split().str.len()
+        dataframe["sentence_avg_word_length"] = round(
+            dataframe["sentence_length"] / dataframe[
+                "sentence_word_count"]).astype(int)
+        dataframe["sentence_vowel_count"] = dataframe[
+            "sentence"].str.lower().str.count(r'[aeiou]')
 
     if use_readability_measures:
         dataframe["sentence_gunning_fog"] = \
@@ -162,10 +175,10 @@ def extract_features(dataframe, use_token=True,
         dataframe["token_length"] = [
             len(item) for item in dataframe['sentence'].to_list()
         ]
-        dataframe["token_vowel_count"] = [
-            textstat.syllable_count(item) for item
-            in dataframe['sentence'].to_list()
-        ]
+        # dataframe["token_vowel_count"] = [
+        #     textstat.syllable_count(item) for item
+        #     in dataframe['sentence'].to_list()
+        # ]
 
     if use_word_embeddings:
         embedder = FastTextEmbedder()
