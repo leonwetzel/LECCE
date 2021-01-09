@@ -7,9 +7,6 @@ from gensim.models import Word2Vec, FastText
 import gensim.downloader
 import numpy as np
 
-from lecce.feature.representation.google import GOOGLE_NEWS_VECTORS, \
-    download_google_news_vectors
-
 
 class Embedder(ABC):
     """
@@ -35,17 +32,17 @@ class Embedder(ABC):
         self.directory = directory
         self.model = None
 
-    @abstractmethod
-    def transform(self, token):
-        pass
-
     def get_mean_vector(self, words):
-        """
+        """Calculate the mean word embedding for a given
+        collection of words.
 
         Parameters
         ----------
         model :
+            Gensim model that can convert tokens to embeddings.
         words : iterable
+            Collection of words that need to be transformed
+            to word embeddings. Usually a sentence or list of words.
 
         Returns
         -------
