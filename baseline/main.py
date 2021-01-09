@@ -81,7 +81,7 @@ def main():
                               n_jobs=-1, cv=10, error_score=0.0,
                               return_train_score=False)
 
-    classifier.fit(X_train, y_train)
+    classifier.fit(X_train[['ft_embedding']], y_train)
 
     y_guess = classifier.predict(X_trial)
 
@@ -185,32 +185,10 @@ def extract_features(dataframe, use_token=True,
 
         dataframe["ft_embedding"] = \
             dataframe.apply(lambda row:
-                            get_mean_vector(embedder.model,
-                                            row["sentence"]),
+                            list(embedder.get_mean_vector(row["sentence"])),
                             axis=1)
 
     return dataframe
-
-
-def get_mean_vector(model, words):
-    """
-
-    Parameters
-    ----------
-    model :
-    words : iterable
-
-    Returns
-    -------
-
-    """
-    # remove out-of-vocabulary words
-    words = [word for word in words if word in model.key_to_index]
-    embeddings = [model[word] for word in words]
-    if len(words) >= 1:
-        return np.mean(embeddings, axis=0)
-    else:
-        return []
 
 
 if __name__ == '__main__':
