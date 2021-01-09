@@ -524,3 +524,6 @@ class Lcp(Corpus, Extractable):
         with py7zr.SevenZipFile(archive_name, mode='r',
                                 password='YellowDolphin73!') as z:
             z.extractall(path="data")
+
+    def to_list_of_sentences(self, directory_or_filename):
+        pass
