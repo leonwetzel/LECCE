@@ -90,8 +90,7 @@ class Corpus(ABC):
             total_size_in_bytes = int(
                 response.headers.get('content-length'))
 
-            with open(rf"{destination_dir}/{url['name']}", 'wb',
-                      encoding='utf-8') as f:
+            with open(rf"{destination_dir}/{url['name']}", 'wb') as f:
                 with tqdm(total=total_size_in_bytes, unit="B",
                           unit_scale=True, desc=url["name"],
                           initial=0, ascii=True) as pbar:
@@ -143,7 +142,7 @@ class Corpus(ABC):
 
     @abstractmethod
     def to_list_of_sentences(self, directory_or_filename):
-        """
+        """Prepares a corpus for use with Gensim.
 
         Returns
         -------
@@ -156,8 +155,10 @@ class Bible(Corpus):
     """
     Class for Bible-like corpora.
     """
-    urls = [{"url": "https://www.gutenberg.org/files/10900/10900-h/10900-h.htm",
-             "name": "bible.html"}]
+    urls = [
+        {"url": "https://www.gutenberg.org/files/10900/10900-h/10900-h.htm",
+         "name": "bible.html"}
+    ]
 
     @staticmethod
     def prepare(filename, output_filename="cleaned_bible.txt"):
@@ -181,7 +182,8 @@ class Bible(Corpus):
                   in corpus if line]
         corpus = [' '.join(line.split()) for line in corpus]
         corpus = [line.split('.') for line in corpus]
-        corpus = [line for sublist in corpus for line in sublist if line]
+        corpus = [line for sublist in corpus for line in sublist if
+                  line]
 
         with open(output_filename, 'w', encoding='utf-8') as f:
             for line in corpus:
@@ -210,6 +212,22 @@ class Europarl(Corpus, Extractable):
     """
     urls = [{"url": "https://www.statmt.org/europarl/v7/europarl.tgz",
              "name": "europarl.tgz"}]
+
+    def download(self, destination_dir="data"):
+        """
+
+        Parameters
+        ----------
+        destination_dir
+
+        Returns
+        -------
+
+        """
+        super().download(destination_dir)
+        self.extract_archive(
+            f"{destination_dir}/{self.urls[0]['name']}")
+        self.clean_corpus(f"{destination_dir}/txt")
 
     @staticmethod
     def prepare(filename, output_filename):
@@ -254,7 +272,7 @@ class Europarl(Corpus, Extractable):
         with tarfile.open(archive_name, "r") as tar:
             tar.extractall(path="data",
                            members=self.get_english_proceedings(tar))
-        os.remove(f"data/{archive_name}")
+        os.remove(f"{archive_name}")
 
     @staticmethod
     def get_english_proceedings(members):
@@ -278,7 +296,7 @@ class Europarl(Corpus, Extractable):
                 yield tarinfo
 
     def to_list_of_sentences(self, directory_or_filename="txt"):
-        """
+        """Prepare the corpus
 
         Parameters
         ----------
@@ -296,10 +314,11 @@ class Europarl(Corpus, Extractable):
                 with open(filepath, 'r', encoding='utf-8') as F:
                     subcorpus = F.readlines()
 
-                subcorpus = [line.strip() for line in subcorpus]
+                subcorpus = [line for line in subcorpus]
                 subcorpus = [line for line in subcorpus if line]
                 subcorpus = [sent_tokenize(line) for line in subcorpus]
-                subcorpus = [word_tokenize(sentence) for sublist in subcorpus
+                subcorpus = [word_tokenize(sentence) for sublist in
+                             subcorpus
                              for sentence in sublist]
                 corpus.extend(subcorpus)
         return corpus
@@ -373,7 +392,8 @@ class Pubmed(Corpus, Extractable):
             # Iterate through the filenames
             # and retrieve plus extract them one at a time
             for archive_name in requested_files[:self.file_limit]:
-                print(f"Downloading files from {self.urls[0]['url']}...")
+                print(
+                    f"Downloading files from {self.urls[0]['url']}...")
                 with open(f"{target_dir}/{archive_name}", 'wb') as f:
                     ftp.retrbinary('RETR %s' % archive_name, f.write)
 
@@ -472,11 +492,11 @@ class Pubmed(Corpus, Extractable):
 
                 with open(filepath, "r", encoding="utf-8") as F:
                     abstracts = F.readlines()
-
-                    if not abstracts: continue
+                if not abstracts: continue
 
                 sentences = [
-                    sent_tokenize(abstract.strip()) for abstract in abstracts
+                    sent_tokenize(abstract.strip()) for abstract in
+                    abstracts
                 ]
                 sentences = [
                     word_tokenize(sentence.translate(

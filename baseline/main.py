@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-import csv
-import string
+import os
 import sys
+import argparse
 
 import pandas as pd
 from sklearn.linear_model import LinearRegression
@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 
 from lecce.feature.representation.word_embeddings import \
     Word2VecEmbedder, FastTextEmbedder
+from lecce.information.retrieval import load
 
 COLUMN_NAMES = ['id', 'subcorpus', 'sentence', 'token', 'complexity']
 MULTI_TRIAL_FILE_NAME = "lcp_multi_trial.tsv"
@@ -47,6 +48,11 @@ def main():
             "Please specify which type of trial information you would"
             " like to use (-S for single trial, -M for multi trial"
             " information)!")
+
+    # parser = argparse.ArgumentParser(
+    #     description="Please indicate which lexical complexity task "
+    #                 "the system should perform.")
+    # parser.add_argument('-s', action='single')
 
     X_train, y_train = extract_features(training_data,
                                         use_sentence=False,
@@ -81,7 +87,8 @@ def main():
                               n_jobs=-1, cv=10, error_score=0.0,
                               return_train_score=False)
 
-    classifier.fit(X_train[['ft_embedding']], y_train)
+    classifier.fit(X_train[['ft_embedding']].values.tolist(),
+                   y_train)
 
     y_guess = classifier.predict(X_trial)
 
@@ -107,19 +114,6 @@ def main():
                        grid=False, figsize=(20, 9)
                        ).get_figure()
     fig.savefig("results.png")
-
-
-def load(filename):
-    """
-    Load information from the .tsv files and store contents into a
-    pandas DataFrame.
-    :param filename:
-    :return:
-    """
-    df = pd.read_csv(f"{filename}", delimiter='\t', header=0,
-                     names=COLUMN_NAMES, quoting=csv.QUOTE_NONE,
-                     encoding='utf-8')
-    return df
 
 
 def extract_features(dataframe, use_token=True,
