@@ -58,19 +58,38 @@ class Embedder(ABC):
         else:
             return []
 
-    def is_in_vocabulary(self, token):
+    def is_in_vocabulary(self, word):
         """Checks if a given token is present in the
         vocabulary of the embeddings model.
 
         Parameters
         ----------
-        token
+        word
 
         Returns
         -------
 
         """
-        return token in self.model.key_to_index
+        return word in self.model.wv.key_to_index
+
+    def transform(self, word):
+        """Transforms a word into a word embedding.
+
+        Parameters
+        ----------
+        word : str
+            Word that needs to be transformed into a word embedding, using
+            the selected embedding algorithm.
+
+        Returns
+        -------
+
+        """
+        if self.is_in_vocabulary(word):
+            embedding = self.model.wv[word]
+        else:
+            embedding = np.zeros((self.model.wv.vector_size,), dtype=int)
+        return embedding
 
 
 class Word2VecEmbedder(Embedder):
@@ -192,19 +211,6 @@ class FastTextEmbedder(Embedder):
             # use default fastText model
             self.model = gensim.downloader.load(
                 'fasttext-wiki-news-subwords-300')
-
-    def transform(self, token):
-        """
-
-        Parameters
-        ----------
-        token
-
-        Returns
-        -------
-
-        """
-        return self.model.wv[token]
 
     @staticmethod
     def load_vectors(fname):
