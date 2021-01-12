@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import os
 
-from gensim.models import Word2Vec, FastText
 from gensim.test.utils import datapath
 from gensim import utils
 
