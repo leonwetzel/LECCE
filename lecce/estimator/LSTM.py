@@ -45,7 +45,7 @@ test_corpus = corpus[split_point:]
 
 #build the model
 model = Sequential()
-model.add(Embedding(input_dim = ?, output_dim = ?, input_length = ?))
+model.add(Embedding(input_dim=100, output_dim=100, input_length = ?))
 model.add(Bidirectional(LSTM(64)))
 model.add(Dense(input_dim = ?, units = 500, activation = 'adam'))
 model.compile(loss='mean_squared_error', optimizer='sgd', metrics=['accuracy'])
