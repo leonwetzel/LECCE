@@ -4,11 +4,9 @@ import sys
 import argparse
 
 import pandas as pd
-from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score, \
     explained_variance_score, max_error, mean_absolute_error
-from sklearn.model_selection import GridSearchCV
-from sklearn.pipeline import Pipeline
+from sklearn.dummy import DummyRegressor
 from sklearn.preprocessing import LabelEncoder
 from textstat import textstat
 import numpy as np
@@ -68,6 +66,7 @@ def main():
                                         use_token=True,
                                         use_readability_measures=False), \
                        trial_data[['complexity']]
+
     tokens = X_trial[['token', "sentence"]]
     X_train.drop(["complexity", "id", "token", "sentence"],
                  axis=1, inplace=True)
@@ -75,24 +74,12 @@ def main():
                  axis=1, inplace=True)
     print("Finished feature processing!\n")
 
-    print(f"Features used: {list(X_train.columns)}\n")
-
-    pipeline = Pipeline([
-        ('clf', LinearRegression(n_jobs=-1))
-    ])
-
-    parameters = {
-        'clf__fit_intercept': [True, False],
-        'clf__normalize': [True, False]
-    }
-
-    regressor = GridSearchCV(estimator=pipeline, param_grid=parameters,
-                              n_jobs=-1, cv=10, error_score=0.0,
-                              return_train_score=False)
-
+    regressor = DummyRegressor(strategy="median")
     regressor.fit(X_train, y_train)
 
     y_guess = regressor.predict(X_trial)
+
+    regressor.score(X_train, y_train)
 
     print(f"Mean squared error: {mean_squared_error(y_trial, y_guess)}")
     print(f"R^2 score: {r2_score(y_trial, y_guess)}")
@@ -101,7 +88,6 @@ def main():
     print(f"Max error: {max_error(y_trial, y_guess)}")
     print(f"Mean absolute error:"
           f" {mean_absolute_error(y_trial, y_guess)}")
-    print(f"Best parameter combination: {regressor.best_params_}\n")
 
     results = y_trial.merge(pd.DataFrame(y_guess), left_index=True,
                             right_index=True)
@@ -111,11 +97,11 @@ def main():
 
     fig = results.plot(kind='bar', rot=0,
                        title="Actual and predicted complexity scores"
-                             " by LECCE (single token)",
+                             " by dummy (single token)",
                        xlabel="Sample ID", ylabel="Complexity score",
                        grid=False, figsize=(20, 9)
                        ).get_figure()
-    fig.savefig("results.png")
+    fig.savefig("dummy_results.png")
 
 
 if __name__ == '__main__':
