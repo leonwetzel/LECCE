@@ -1,7 +1,7 @@
-import pandas
 from keras.models import Sequential
 from keras.layers import Embedding
-from keras.layers import LSTM
+from keras.layers import LSTM, Bidirectional
+from keras.callbacks import EarlyStopping
 
 
 def get_embedding(token, corpus):
@@ -46,9 +46,10 @@ test_corpus = corpus[split_point:]
 #build the model
 model = Sequential()
 model.add(Embedding(input_dim = ?, output_dim = ?, input_length = ?))
-model.add(LSTM(units = 4, activation = 'adam', input_shape = ?))
+model.add(Bidirectional(LSTM(64)))
 model.add(Dense(input_dim = ?, units = 500, activation = 'adam'))
-model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
-model.fit(X_train, Y_train, batch_size = 32, epochs = 100)
+model.compile(loss='mean_squared_error', optimizer='sgd', metrics=['accuracy'])
+es = EarlyStopping(monitor='val_loss', min_delta = 0, patience=10, mode='auto', verbose=1)
+model.fit(X_train, Y_train, batch_size = 32, epochs = 100, callbacks=[es])
 
 predictions = model.predict(X_test, batch_size = 5)
