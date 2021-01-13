@@ -56,7 +56,7 @@ class Embedder(ABC):
         if len(words) >= 1:
             return np.mean(embeddings, axis=0)
         else:
-            return []
+            return np.zeros((self.model.wv.vector_size,), dtype=float)
 
     def is_in_vocabulary(self, word):
         """Checks if a given token is present in the
@@ -88,7 +88,7 @@ class Embedder(ABC):
         if self.is_in_vocabulary(word):
             embedding = self.model.wv[word]
         else:
-            embedding = np.zeros((self.model.wv.vector_size,), dtype=int)
+            embedding = np.zeros((self.model.wv.vector_size,), dtype=float)
         return embedding
 
 
