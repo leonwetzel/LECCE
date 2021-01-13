@@ -12,7 +12,7 @@ class TestUtilsMethods(unittest.TestCase):
         -------
 
         """
-        self.assertFalse(is_directory_empty(f"{ROOT_DIR}"), False)
+        self.assertFalse(is_directory_empty("."), False)
 
 
 if __name__ == '__main__':
