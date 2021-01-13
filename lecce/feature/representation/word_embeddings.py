@@ -120,25 +120,20 @@ class Word2VecEmbedder(Embedder):
         elif corpus:
             model_name = input("Please enter the filename for your new "
                                "word2vec model (including extension): ")
-            self.model = gensim.models.Word2Vec.load(
-                f"{directory}/GoogleNews-vectors.bin")
-            # self.model.build_vocab(corpus, update=True)
-            self.model.train(corpus, total_examples=len(corpus),
-                             epochs=self.model.epochs)
-            # self.model = Word2Vec(sentences=corpus, corpus_file=None,
-            #                       vector_size=200, alpha=0.025,
-            #                       window=5,
-            #                       min_count=1, max_vocab_size=None,
-            #                       sample=0.001, seed=1, workers=3,
-            #                       min_alpha=0.0001, sg=0, hs=0,
-            #                       negative=5,
-            #                       ns_exponent=0.75, cbow_mean=1,
-            #                       epochs=5,
-            #                       null_word=0, trim_rule=None,
-            #                       sorted_vocab=1,
-            #                       batch_words=10000, compute_loss=False,
-            #                       callbacks=(), comment=None,
-            #                       max_final_vocab=None)
+            self.model = Word2Vec(sentences=corpus, corpus_file=None,
+                                  vector_size=100, alpha=0.025,
+                                  window=5,
+                                  min_count=1, max_vocab_size=None,
+                                  sample=0.001, seed=1, workers=3,
+                                  min_alpha=0.0001, sg=0, hs=0,
+                                  negative=5,
+                                  ns_exponent=0.75, cbow_mean=1,
+                                  epochs=5,
+                                  null_word=0, trim_rule=None,
+                                  sorted_vocab=1,
+                                  batch_words=10000, compute_loss=False,
+                                  callbacks=(), comment=None,
+                                  max_final_vocab=None)
             self.model.save(f"{directory}/{model_name}")
         else:
             # use default GoogleNews-vectors
