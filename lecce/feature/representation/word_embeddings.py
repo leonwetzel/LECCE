@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import io
 import os
-from abc import ABC, abstractmethod
+from abc import ABC
 
 from gensim.models import Word2Vec, FastText
 import gensim.downloader
@@ -144,21 +144,6 @@ class Word2VecEmbedder(Embedder):
             # use default GoogleNews-vectors
             self.model = gensim.downloader.load(
                 "word2vec-google-news-300")
-
-    def transform(self, token):
-        """Transforms a given token into a word embedding.
-
-        Parameters
-        ----------
-        token : str
-            Token that needs to be transformed into a word embedding.
-
-        Returns
-        -------
-        vector
-            Word embedding of a given token in vector form.
-        """
-        return self.model.wv[token]
 
 
 class FastTextEmbedder(Embedder):
