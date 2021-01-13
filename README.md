@@ -1,4 +1,7 @@
 # LECCE (LExiCal Complexity Estimator)
+
+![LECCE](https://github.com/leonwetzel/LECCE/workflows/LECCE/badge.svg?branch=master)
+
 Code for the course Shared Task Information Science. Contains code of
 LECCE (LExiCal Complexity Estimator), our submission for SemEval 2021 Task 1.
 
