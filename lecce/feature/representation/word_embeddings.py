@@ -49,14 +49,14 @@ class Embedder(ABC):
 
         """
         # remove out-of-vocabulary words
-        words = [word for word in words
+        words = [word.lower() for word in words
                  if word in self.model.key_to_index]
         # generate embeddings per word
         embeddings = [self.model[word] for word in words]
         if len(words) >= 1:
             return np.mean(embeddings, axis=0)
         else:
-            return np.zeros((self.model.wv.vector_size,), dtype=float)
+            return np.zeros((self.model.wv.vector_size,), dtype=np.float32)
 
     def is_in_vocabulary(self, word):
         """Checks if a given token is present in the
@@ -70,7 +70,7 @@ class Embedder(ABC):
         -------
 
         """
-        return word in self.model.wv.key_to_index
+        return word.lower() in self.model.wv.key_to_index
 
     def transform(self, word):
         """Transforms a word into a word embedding.
@@ -86,9 +86,9 @@ class Embedder(ABC):
 
         """
         if self.is_in_vocabulary(word):
-            embedding = self.model.wv[word]
+            embedding = self.model.wv[word.lower()]
         else:
-            embedding = np.zeros((self.model.wv.vector_size,), dtype=float)
+            embedding = np.zeros((self.model.wv.vector_size,), dtype=np.float32)
         return embedding
 
 
