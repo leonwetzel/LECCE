@@ -169,11 +169,9 @@ class FastTextEmbedder(Embedder):
         elif corpus:
             model_name = input("Please enter the filename for your new "
                                "fastText model (including extension): ")
-            self.model.build_vocab(corpus, total_words=len(corpus),
-                                   epochs=self.model.epochs)
             self.model = FastText(sentences=corpus, corpus_file=None,
                                   sg=0, hs=0,
-                                  vector_size=200, alpha=0.025,
+                                  vector_size=100, alpha=0.025,
                                   window=5,
                                   min_count=5, max_vocab_size=None,
                                   word_ngrams=1, sample=0.001, seed=1,
