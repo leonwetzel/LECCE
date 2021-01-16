@@ -38,10 +38,12 @@ def main():
     """
     try:
         if sys.argv[1] == "-S" or "--single" or "-s":
+            token_type = "Single"
             training_data = load(
                 f"../data/train/{SINGLE_TRAIN_FILE_NAME}")
             trial_data = load(f"../data/{SINGLE_TRIAL_FILE_NAME}")
         elif sys.argv[1] == "-M" or "--multi" or "-m":
+            token_type = "Multi"
             training_data = load(
                 f"../data/train/{MULTI_TRAIN_FILE_NAME}")
             trial_data = load(f"../data/{MULTI_TRIAL_FILE_NAME}")
@@ -68,7 +70,7 @@ def main():
                                         use_token=True,
                                         use_readability_measures=False), \
                        trial_data[['complexity']]
-    tokens = X_trial[['token', "sentence"]]
+    tokens = X_trial[['id', 'token', "sentence"]]
     X_train.drop(["complexity", "id", "token", "sentence"],
                  axis=1, inplace=True)
     X_trial.drop(["complexity", "id", "token", "sentence"],
@@ -87,8 +89,8 @@ def main():
     }
 
     regressor = GridSearchCV(estimator=pipeline, param_grid=parameters,
-                              n_jobs=-1, cv=10, error_score=0.0,
-                              return_train_score=False)
+                             n_jobs=-1, cv=10, error_score=0.0,
+                             return_train_score=False)
 
     regressor.fit(X_train, y_train)
 
@@ -106,16 +108,18 @@ def main():
     results = y_trial.merge(pd.DataFrame(y_guess), left_index=True,
                             right_index=True)
     results = results.merge(tokens, left_index=True, right_index=True)
-    results.columns = ["Actual", "Predicted", "Token", "Sentence",]
+    results.columns = ["Actual", "Predicted", "Id", "Token", "Sentence", ]
     print(results[['Actual', "Predicted", "Token"]])
 
     fig = results.plot(kind='bar', rot=0,
-                       title="Actual and predicted complexity scores"
-                             " by LECCE (single token)",
+                       title=f"Actual and predicted complexity scores"
+                             f" by LECCE ({token_type} token_type)",
                        xlabel="Sample ID", ylabel="Complexity score",
                        grid=False, figsize=(20, 9)
                        ).get_figure()
     fig.savefig("results.png")
+
+    results[["Id", "Predicted"]].to_csv(f"results_{token_type}.csv", index=False, header=False)
 
 
 if __name__ == '__main__':
