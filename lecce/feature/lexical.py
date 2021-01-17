@@ -5,7 +5,7 @@ from nltk.corpus import wordnet as wn
 
 class Meaning:
     """
-
+    Contains functionality related to NLTK.
     """
     ADJ, ADJ_SAT, ADV, NOUN, VERB = "a", "s", "r", "n", "v"
 
@@ -59,3 +59,27 @@ class Meaning:
 
         """
         return nltk.pos_tag([token])[0][1]
+
+
+class Frequencies:
+    """
+
+    """
+    def __init__(self):
+        """
+
+        Parameters
+        ----------
+        filenames
+        """
+        self.filenames = [
+            'europarl_unfiltered_dict.pkl',
+            'pubmed_unfiltered_dict.pkl',
+            'bible_dict.pkl'
+        ]
+
+        self.corpora = {}
+        for file in self.filenames:
+            with open(file, encoding='utf-8', mode='rb') as F:
+                key = file.split('_')[0]
+                self.corpora[key] = F.read()

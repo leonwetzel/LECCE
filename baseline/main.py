@@ -26,16 +26,16 @@ pd.set_option('display.max_rows', None)
 def main():
     print("Loading data...")
     try:
-        if sys.argv[1] == "-S" or sys.argv[1] == "--single" or sys.argv[
-            1] == "-s":
+        if sys.argv[1] == "-S" or sys.argv[1] == "--single" \
+                or sys.argv[1] == "-s":
             token_type = "Single"
             training_data = load(
                 f"../data/train/{SINGLE_TRAIN_FILE_NAME}")
             trial_data = load(f"../data/{SINGLE_TRIAL_FILE_NAME}")
         elif sys.argv[1] == "-M" or "--multi" or "-m":
             token_type = "Multi"
-        elif sys.argv[1] == "-M" or sys.argv[1] == "--multi" or sys.argv[
-            1] == "-m":
+        elif sys.argv[1] == "-M" or sys.argv[1] == "--multi" \
+                or sys.argv[1] == "-m":
             training_data = load(
                 f"../data/train/{MULTI_TRAIN_FILE_NAME}")
             trial_data = load(f"../data/{MULTI_TRIAL_FILE_NAME}")
@@ -44,6 +44,9 @@ def main():
             "Please specify which type of trial information you would"
             " like to use (-S for single trial, -M for multi trial"
             " information)!")
+
+    training_data = training_data.dropna()
+    trial_data = trial_data.dropna()
 
     print("Extracting features...")
     X_train, y_train = extract_features(training_data,

@@ -111,31 +111,22 @@ def extract_features(dataframe, use_token=True,
 
 def get_overall_dict():
     """
-    Uses the Counter function to count the number of times a word occures
+    Uses the Counter function to count the number of times a word occurs
     in a list of words from the text files
     @return: a pickle object with a dict. with words and their frequency
     @rtype: pickle dict
     """
-    list_of_words = []
-    with open("bible.txt", encoding="utf8") as file:
-        for line in file:
-            for word in line.split():
-                list_of_words.append(word.lower())
+    bag_of_words = []
 
-    with open("europarl.txt", encoding="utf8") as file:
-        for line in file:
-            for word in line.split():
-                list_of_words.append(word.lower().strip("’,.;:''?!"))
+    for file in ['bible.txt', 'europarl.txt', 'pubmed.txt']:
+        with open(file, encoding='utf-8') as F:
+            for line in F:
+                for word in line.split():
+                    bag_of_words.append(word.lower().strip("’,.;:''?!"))
 
-    with open("pubmed.txt", encoding="utf8") as file:
-        for line in file:
-            for word in line.split():
-                list_of_words.append(word.lower().strip("’,.;:''?!"))
-
-    dict = Counter(list_of_words)
-    with open("overall_dict.pkl.pkl", "wb", encoding='utf-8') as F:
+    dict = Counter(bag_of_words)
+    with open("overall_dict.pkl", "wb", encoding='utf-8') as F:
         pickle.dump(dict, F)
-    print("Freq dict. created")
 
 
 def get_bible_dict():
@@ -155,7 +146,7 @@ def get_bible_dict():
     print("Freq dict. created")
 
 
-def get_eu_dict():
+def get_europarl_frequencies():
     """
     Uses the Counter function to count the number of times a word occures in a list of words from the text file
     @return: a pickle object with a dict. with words and their frequency
@@ -172,7 +163,7 @@ def get_eu_dict():
     print("Freq dict. created")
 
 
-def get_pubmed_dict():
+def get_pubmed_frequencies():
     """
     !Takes time; large file!
     Uses the Counter function to count the number of times a word occures in a list of words from the text file
@@ -186,7 +177,7 @@ def get_pubmed_dict():
                 list_of_words.append(word.lower())
 
     dict = Counter(list_of_words)
-    pickle.dump(dict, open("pubmed_unfiltered_dict.pkl.pkl", "wb"))
+    pickle.dump(dict, open("pubmed_unfiltered_dict.pkl", "wb"))
     print("Freq dict. created")
 
 
