@@ -50,16 +50,16 @@ def main():
 
     print("Extracting features...")
     X_train, y_train = extract_features(training_data,
-                                        use_sentence=True,
+                                        use_sentence=False,
                                         use_word_embeddings=False,
-                                        use_token=True,
+                                        use_token=False,
                                         use_readability_measures=False), \
                        training_data[['complexity']]
 
     X_trial, y_trial = extract_features(trial_data,
-                                        use_sentence=True,
+                                        use_sentence=False,
                                         use_word_embeddings=False,
-                                        use_token=True,
+                                        use_token=False,
                                         use_readability_measures=False), \
                        trial_data[['complexity']]
     tokens = X_trial[['id', 'token', "sentence"]]
@@ -104,7 +104,7 @@ def main():
 
     fig = results.plot(kind='bar', rot=0,
                        title=f"Actual and predicted complexity scores"
-                             f" by LECCE ({token_type} token_type)",
+                             f" by LECCE ({token_type.lower()} token_type)",
                        xlabel="Sample ID", ylabel="Complexity score",
                        grid=False, figsize=(20, 9)
                        ).get_figure()

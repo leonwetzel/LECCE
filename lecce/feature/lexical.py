@@ -74,14 +74,57 @@ class Frequencies:
         ----------
         filenames
         """
-        with open("bible_dict.pkl", encoding='utf-8', mode='rb') as F:
+        with open("bible_dict.pkl", mode='rb') as F:
             self.bible = pickle.load(F)
 
-        with open("europarl_unfiltered_dict.pkl", encoding='utf-8', mode='rb') as F:
+        with open("europarl_unfiltered_dict.pkl", mode='rb') as F:
             self.europarl = pickle.load(F)
 
-        with open("pubmed_unfiltered_dict.pkl", encoding='utf-8', mode='rb') as F:
+        with open("pubmed_unfiltered_dict.pkl", mode='rb') as F:
             self.pubmed = pickle.load(F)
 
-        with open("overall_dict.pkl", encoding='utf-8', mode='rb') as F:
+        with open("overall_dict.pkl", mode='rb') as F:
             self.overall = pickle.load(F)
+
+    def get_count(self, word, corpus):
+        """
+
+        Parameters
+        ----------
+        word : str
+            Word that should be looked up.
+        corpus : str
+            Name of the corpus in which the word appears.
+
+        Returns
+        -------
+
+        """
+        if corpus == "bible":
+            return self._count(self.bible, word)
+        elif corpus == 'pubmed':
+            return self._count(self.pubmed, word)
+        elif corpus == 'europarl':
+            return self._count(self.europarl, word)
+        return 0
+
+    @staticmethod
+    def _count(dictionary, word):
+        """Obtain the frequency of a word in a given dictionary.
+
+        Parameters
+        ----------
+        dictionary : dict
+            Dictionary that contains words as keys and frequencies as values.
+        word : str
+            Word of which the frequency should be looked up.
+
+        Returns
+        -------
+        count : int
+            Frequency of the given word.
+        """
+        try:
+            return dictionary[word]
+        except KeyError:
+            return 0

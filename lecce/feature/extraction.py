@@ -85,17 +85,17 @@ def extract_features(dataframe, use_token=True,
             lambda word: 1 if word[0].isupper() else 0)
 
         dataframe["token_vowel_count"] = dataframe[
-            "token"].str.lower().str.count(r'[aeiou]')
+            "token"].str.lower().str._count(r'[aeiou]')
 
         # dataframe["token_freq"] = [
         #    freq_overall_corpus(item) for item in dataframe['token']
         # ]
         """Adding the freq in the bible and eu corpus"""
         dataframe["token_freq_bible"] = [
-            COUNTS.bible[item] for item in dataframe['token']
+            COUNTS.get_count(item, "bible") for item in dataframe['token']
         ]
         dataframe["token_freq_eu_corpus"] = [
-            freq_eu_corpus(item) for item in dataframe['token']
+            COUNTS.get_count(item, "europarl") for item in dataframe['token']
         ]
 
     if use_word_embeddings:
