@@ -68,8 +68,6 @@ def main():
     X_trial.drop(["complexity", "id", "token", "sentence"],
                  axis=1, inplace=True)
 
-    print(f"Features used: {list(X_train.columns)}\n")
-
     pipeline = Pipeline([
         ('clf', LinearRegression(n_jobs=-1))
     ])
@@ -79,31 +77,36 @@ def main():
         'clf__normalize': [True, False]
     }
 
-    regressor = LinearRegression(n_jobs=-1)
-
-
+    regressor = LinearRegression(n_jobs=-1,
+                                 normalize=False,
+                                 fit_intercept=True)
 
     regressor.fit(X_train, y_train)
 
     y_guess = regressor.predict(X_trial)
-
-    print(f"Mean squared error: {mean_squared_error(y_trial, y_guess)}")
-    print(f"R^2 score: {r2_score(y_trial, y_guess)}")
-    print(f"Explained variance score:"
-          f" {explained_variance_score(y_trial, y_guess)}")
-    print(f"Max error: {max_error(y_trial, y_guess)}")
-    print(f"Mean absolute error:"
-          f" {mean_absolute_error(y_trial, y_guess)}")
-
-    #print(f"Best parameter combination: {regressor.best_params_}\n")
 
     results = y_trial.merge(pd.DataFrame(y_guess), left_index=True,
                             right_index=True)
     results = results.merge(tokens, left_index=True, right_index=True)
     results.columns = ["Actual", "Predicted", "Id", "Token", "Sentence", ]
     print(results[['Actual', "Predicted", "Token"]])
-    "Print the correlation between predicted and actual"
-    print(results.corr(method='pearson'))
+
+    print()
+    print(f"Features used: {list(X_train.columns)}\n")
+
+    print(f"Mean squared error (MSE):\t{mean_squared_error(y_trial, y_guess)}")
+    print(f"R^2 score (R2):\t{r2_score(y_trial, y_guess)}")
+    print(f"Mean absolute error (MAE):\t"
+          f" {mean_absolute_error(y_trial, y_guess)}")
+    print(f"Explained variance score:\t"
+          f" {explained_variance_score(y_trial, y_guess)}")
+    print(f"Max error:\t{max_error(y_trial, y_guess)}")
+    print()
+
+    print("Pearson correlation")
+    print(results.corr(method='pearson'), '\n')
+
+    print("Spearman correlation (Rho)")
     print(results.corr(method='spearman'))
     print()
 

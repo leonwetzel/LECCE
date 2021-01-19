@@ -73,13 +73,13 @@ def extract_features(dataframe, use_token=True,
         # dataframe['token_proper_noun'] =\
         #     dataframe.apply(lambda row: Meaning.is_proper_name(row["token"]),
         #                     axis=1)
+
         dataframe['token_pos_tag'] = \
             dataframe.apply(lambda row: Meaning.get_pos_tag(row["token"]),
                             axis=1)
         dataframe["token_pos_tag"] = \
             ENCODER.fit_transform(dataframe["token_pos_tag"])
 
-        """Adds if a word is all uppercase, or only the first letter."""
         dataframe['upper'] = dataframe['token'].apply(
             lambda word: 1 if word.isupper() else 0)
         dataframe['upper_first'] = dataframe['token'].apply(
@@ -91,12 +91,11 @@ def extract_features(dataframe, use_token=True,
         # dataframe["token_freq"] = [
         #    freq_overall_corpus(item) for item in dataframe['token']
         # ]
-        """Adding the freq in the bible and eu corpus"""
         dataframe["token_freq_bible"] = [
-            COUNTS.get_count(item, "bible") for item in dataframe['token']
+            COUNTS.get_logarithmic_count(item, "bible") for item in dataframe['token']
         ]
-        dataframe["token_freq_eu_corpus"] = [
-            COUNTS.get_count(item, "europarl") for item in dataframe['token']
+        dataframe["token_freq_europarl"] = [
+            COUNTS.get_logarithmic_count(item, "europarl") for item in dataframe['token']
         ]
 
     if use_word_embeddings:
@@ -212,7 +211,7 @@ def freq_eu_corpus(word):
     """
     @param word:
     @type word: string
-    @return: number of times the word occures in the eu frequencies
+    @return: number of times the word occurs in the eu frequencies
     @rtype: int
     """
     frequencies = pickle.load(open("europarl_unfiltered_dict.pkl", "rb"))
@@ -226,8 +225,11 @@ def freq_pubmed_corpus(word):
     """
     @param word:
     @type word: string
-    @return: number of times the word occures in the pubmed frequencies
+    @return: number of times the word occurs in the pubmed frequencies
     @rtype: int
     """
     frequencies = pickle.load(open("pubmed_unfiltered_dict.pkl", "rb"))
-    return frequencies[word]
+    if frequencies[word] == 0:
+        return 0
+    else:
+        return math.log(frequencies[word])

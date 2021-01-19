@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import math
 import pickle
 
 import nltk
@@ -86,7 +87,7 @@ class Frequencies:
         with open("overall_dict.pkl", mode='rb') as F:
             self.overall = pickle.load(F)
 
-    def get_count(self, word, corpus):
+    def get_absolute_count(self, word, corpus):
         """
 
         Parameters
@@ -106,6 +107,43 @@ class Frequencies:
             return self._count(self.pubmed, word)
         elif corpus == 'europarl':
             return self._count(self.europarl, word)
+        return 0
+
+    def get_logarithmic_count(self, word, corpus):
+        """
+
+        Parameters
+        ----------
+        word : str
+            Word that should be looked up.
+        corpus : str
+            Name of the corpus in which the word appears.
+
+        Returns
+        -------
+
+        """
+        word = word.lower()
+        if corpus == "bible":
+            count = self._count(self.bible, word)
+            if count == 0:
+                return 0
+            else:
+                return math.log(self.bible[word])
+
+        elif corpus == 'pubmed':
+            count = self._count(self.pubmed, word)
+            if count == 0:
+                return 0
+            else:
+                return math.log(self.pubmed[word])
+
+        elif corpus == 'europarl':
+            count = self._count(self.europarl, word)
+            if count == 0:
+                return 0
+            else:
+                return math.log(self.europarl[word])
         return 0
 
     @staticmethod
