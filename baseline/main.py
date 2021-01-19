@@ -79,9 +79,9 @@ def main():
         'clf__normalize': [True, False]
     }
 
-    regressor = GridSearchCV(estimator=pipeline, param_grid=parameters,
-                             n_jobs=-1, cv=10, error_score=0.0,
-                             return_train_score=False)
+    regressor = LinearRegression(n_jobs=-1)
+
+
 
     regressor.fit(X_train, y_train)
 
@@ -94,13 +94,18 @@ def main():
     print(f"Max error: {max_error(y_trial, y_guess)}")
     print(f"Mean absolute error:"
           f" {mean_absolute_error(y_trial, y_guess)}")
-    print(f"Best parameter combination: {regressor.best_params_}\n")
+
+    #print(f"Best parameter combination: {regressor.best_params_}\n")
 
     results = y_trial.merge(pd.DataFrame(y_guess), left_index=True,
                             right_index=True)
     results = results.merge(tokens, left_index=True, right_index=True)
     results.columns = ["Actual", "Predicted", "Id", "Token", "Sentence", ]
     print(results[['Actual', "Predicted", "Token"]])
+    "Print the correlation between predicted and actual"
+    print(results.corr(method='pearson'))
+    print(results.corr(method='spearman'))
+    print()
 
     fig = results.plot(kind='bar', rot=0,
                        title=f"Actual and predicted complexity scores"

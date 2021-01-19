@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import pickle
+import math
 from collections import Counter
 
 from sklearn.preprocessing import LabelEncoder
@@ -201,7 +202,10 @@ def freq_bible_corpus(word):
     @rtype: int
     """
     frequencies = pickle.load(open("bible_dict.pkl", "rb"))
-    return frequencies[word]
+    if frequencies[word] == 0:
+        return 0
+    else:
+        return math.log(frequencies[word])
 
 
 def freq_eu_corpus(word):
@@ -212,7 +216,10 @@ def freq_eu_corpus(word):
     @rtype: int
     """
     frequencies = pickle.load(open("europarl_unfiltered_dict.pkl", "rb"))
-    return frequencies[word]
+    if frequencies[word] == 0:
+        return 0
+    else:
+        return math.log(frequencies[word])
 
 
 def freq_pubmed_corpus(word):
