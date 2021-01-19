@@ -102,6 +102,7 @@ def main():
     results = results.merge(tokens, left_index=True, right_index=True)
     results.columns = ["Actual", "Predicted", "Id", "Token", "Sentence", ]
     print(results[['Actual', "Predicted", "Token"]])
+    "Print the correlation between predicted and actual"
     print(results.corr(method='pearson'))
     print(results.corr(method='spearman'))
     print()
