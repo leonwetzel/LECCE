@@ -86,7 +86,7 @@ def extract_features(dataframe, use_token=True,
             lambda word: 1 if word[0].isupper() else 0)
 
         dataframe["token_vowel_count"] = dataframe[
-            "token"].str.lower().str._count(r'[aeiou]')
+            "token"].str.lower().str.count(r'[aeiou]')
 
         # dataframe["token_freq"] = [
         #    freq_overall_corpus(item) for item in dataframe['token']

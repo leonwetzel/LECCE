@@ -52,14 +52,14 @@ def main():
     X_train, y_train = extract_features(training_data,
                                         use_sentence=False,
                                         use_word_embeddings=False,
-                                        use_token=False,
+                                        use_token=True,
                                         use_readability_measures=False), \
                        training_data[['complexity']]
 
     X_trial, y_trial = extract_features(trial_data,
                                         use_sentence=False,
                                         use_word_embeddings=False,
-                                        use_token=False,
+                                        use_token=True,
                                         use_readability_measures=False), \
                        trial_data[['complexity']]
     tokens = X_trial[['id', 'token', "sentence"]]

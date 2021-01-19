@@ -49,10 +49,9 @@ class Embedder(ABC):
 
         """
         # remove out-of-vocabulary words
-        words = [word.lower() for word in words
-                 if word in self.model.key_to_index]
+        words = [word.lower() for word in words.split()]
         # generate embeddings per word
-        embeddings = [self.model[word] for word in words]
+        embeddings = [self.transform(word) for word in words]
         if len(words) >= 1:
             return np.mean(embeddings, axis=0)
         else:
