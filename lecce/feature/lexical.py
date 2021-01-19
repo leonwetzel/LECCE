@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import pickle
+
 import nltk
 from nltk.corpus import wordnet as wn
 
@@ -63,7 +65,7 @@ class Meaning:
 
 class Frequencies:
     """
-
+    Class containing word frequencies
     """
     def __init__(self):
         """
@@ -72,14 +74,14 @@ class Frequencies:
         ----------
         filenames
         """
-        self.filenames = [
-            'europarl_unfiltered_dict.pkl',
-            'pubmed_unfiltered_dict.pkl',
-            'bible_dict.pkl'
-        ]
+        with open("bible_dict.pkl", encoding='utf-8', mode='rb') as F:
+            self.bible = pickle.load(F)
 
-        self.corpora = {}
-        for file in self.filenames:
-            with open(file, encoding='utf-8', mode='rb') as F:
-                key = file.split('_')[0]
-                self.corpora[key] = F.read()
+        with open("europarl_unfiltered_dict.pkl", encoding='utf-8', mode='rb') as F:
+            self.europarl = pickle.load(F)
+
+        with open("pubmed_unfiltered_dict.pkl", encoding='utf-8', mode='rb') as F:
+            self.pubmed = pickle.load(F)
+
+        with open("overall_dict.pkl", encoding='utf-8', mode='rb') as F:
+            self.overall = pickle.load(F)

@@ -5,10 +5,11 @@ from collections import Counter
 from sklearn.preprocessing import LabelEncoder
 from textstat import textstat
 
-from lecce.feature.lexical import Meaning
+from lecce.feature.lexical import Meaning, Frequencies
 from lecce.feature.representation.word_embeddings import FastTextEmbedder
 
 ENCODER = LabelEncoder()
+COUNTS = Frequencies()
 
 
 def extract_features(dataframe, use_token=True,
@@ -91,7 +92,7 @@ def extract_features(dataframe, use_token=True,
         # ]
         """Adding the freq in the bible and eu corpus"""
         dataframe["token_freq_bible"] = [
-            freq_bible_corpus(item) for item in dataframe['token']
+            COUNTS.bible[item] for item in dataframe['token']
         ]
         dataframe["token_freq_eu_corpus"] = [
             freq_eu_corpus(item) for item in dataframe['token']
