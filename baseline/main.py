@@ -1,24 +1,16 @@
 #!/usr/bin/env python3
-import os
 import sys
-import argparse
 
 import pandas as pd
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score, \
-    explained_variance_score, max_error, mean_absolute_error
+from sklearn.metrics import explained_variance_score, max_error, \
+    mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
-from textstat import textstat
-import numpy as np
-import matplotlib.pyplot as plt
 
 from lecce.feature.extraction import extract_features
-from lecce.feature.representation.word_embeddings import \
-    Word2VecEmbedder, FastTextEmbedder
 from lecce.information.retrieval import load
-from lecce.feature.lexical import Meaning
 
 COLUMN_NAMES = ['id', 'subcorpus', 'sentence', 'token', 'complexity']
 MULTI_TRIAL_FILE_NAME = "lcp_multi_trial.tsv"
@@ -28,20 +20,22 @@ SINGLE_TRAIN_FILE_NAME = "lcp_single_train.tsv"
 
 ENCODER = LabelEncoder()
 
-pd.set_option("display.max_rows", None, "display.max_columns", None)
+pd.set_option('display.max_rows', None)
 
 
 def main():
-    """
-
-    :return:
-    """
+    print("Loading data...")
     try:
-        if sys.argv[1] == "-S" or "--single" or "-s":
+        if sys.argv[1] == "-S" or sys.argv[1] == "--single" \
+                or sys.argv[1] == "-s":
+            token_type = "Single"
             training_data = load(
                 f"../data/train/{SINGLE_TRAIN_FILE_NAME}")
             trial_data = load(f"../data/{SINGLE_TRIAL_FILE_NAME}")
         elif sys.argv[1] == "-M" or "--multi" or "-m":
+            token_type = "Multi"
+        elif sys.argv[1] == "-M" or sys.argv[1] == "--multi" \
+                or sys.argv[1] == "-m":
             training_data = load(
                 f"../data/train/{MULTI_TRAIN_FILE_NAME}")
             trial_data = load(f"../data/{MULTI_TRIAL_FILE_NAME}")
@@ -54,26 +48,25 @@ def main():
     training_data = training_data.dropna()
     trial_data = trial_data.dropna()
 
-    print("Extracting training features...")
+    print("Extracting features...")
     X_train, y_train = extract_features(training_data,
                                         use_sentence=True,
                                         use_word_embeddings=False,
                                         use_token=True,
                                         use_readability_measures=False), \
                        training_data[['complexity']]
-    print("Extracting trial features...")
+
     X_trial, y_trial = extract_features(trial_data,
                                         use_sentence=True,
                                         use_word_embeddings=False,
                                         use_token=True,
                                         use_readability_measures=False), \
                        trial_data[['complexity']]
-    tokens = X_trial[['token', "sentence"]]
+    tokens = X_trial[['id', 'token', "sentence"]]
     X_train.drop(["complexity", "id", "token", "sentence"],
                  axis=1, inplace=True)
     X_trial.drop(["complexity", "id", "token", "sentence"],
                  axis=1, inplace=True)
-    print("Finished feature processing!\n")
 
     print(f"Features used: {list(X_train.columns)}\n")
 
@@ -87,8 +80,8 @@ def main():
     }
 
     regressor = GridSearchCV(estimator=pipeline, param_grid=parameters,
-                              n_jobs=-1, cv=10, error_score=0.0,
-                              return_train_score=False)
+                             n_jobs=-1, cv=10, error_score=0.0,
+                             return_train_score=False)
 
     regressor.fit(X_train, y_train)
 
@@ -106,16 +99,19 @@ def main():
     results = y_trial.merge(pd.DataFrame(y_guess), left_index=True,
                             right_index=True)
     results = results.merge(tokens, left_index=True, right_index=True)
-    results.columns = ["Actual", "Predicted", "Token", "Sentence",]
+    results.columns = ["Actual", "Predicted", "Id", "Token", "Sentence", ]
     print(results[['Actual', "Predicted", "Token"]])
 
     fig = results.plot(kind='bar', rot=0,
-                       title="Actual and predicted complexity scores"
-                             " by LECCE (single token)",
+                       title=f"Actual and predicted complexity scores"
+                             f" by LECCE ({token_type} token_type)",
                        xlabel="Sample ID", ylabel="Complexity score",
                        grid=False, figsize=(20, 9)
                        ).get_figure()
     fig.savefig("results.png")
+
+    results[["Id", "Predicted"]].to_csv(f"results_{token_type}.csv",
+                                        index=False, header=False)
 
 
 if __name__ == '__main__':

@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-import gzip
-import os
 import csv
-import shutil
-import urllib.request as request
 
 import pandas as pd
 
@@ -22,6 +18,6 @@ def load(filename):
     :return:
     """
     df = pd.read_csv(f"{filename}",  delimiter='\t', header=0,
-                     names=COLUMN_NAMES, quoting=csv.QUOTE_NONE,
+                     names=COLUMN_NAMES, quoting=csv.QUOTE_ALL,
                      encoding='utf-8')
     return df
