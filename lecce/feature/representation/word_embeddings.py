@@ -6,6 +6,7 @@ from abc import ABC
 from gensim.models import Word2Vec, FastText
 import gensim.downloader
 import numpy as np
+from statistics import mean
 
 
 class Embedder(ABC):
@@ -53,7 +54,7 @@ class Embedder(ABC):
         # generate embeddings per word
         embeddings = [self.transform(word) for word in words]
         if len(words) >= 1:
-            return np.mean(embeddings, axis=0)
+            return mean(np.mean(embeddings, axis=0))
         else:
             return np.zeros((self.model.wv.vector_size,), dtype=np.float32)
 

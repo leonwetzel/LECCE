@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import pickle
 import math
+import numpy as np
 from collections import Counter
 
 from sklearn.preprocessing import LabelEncoder
@@ -99,14 +100,22 @@ def extract_features(dataframe, use_token=True,
         ]
 
     if use_word_embeddings:
-        embedder = FastTextEmbedder()
 
-        dataframe["ft_embedding"] = \
-            dataframe.apply(
-                lambda row: embedder.get_mean_vector(
-                    row["sentence"].lower()).tolist(),
-                axis=1)
+        embedder_bible= FastTextEmbedder(model_name='ft_bible.bin')
+        #embedder_eu = FastTextEmbedder(model_name='ft_europarl.bin')
+        #embedder_pubmed = FastTextEmbedder(model_name='ft_pubmed.bin')
 
+        dataframe["ft_embedding_bible"] = dataframe['sentence'].apply(embedder_bible.get_mean_vector)
+        #dataframe["ft_embedding_eu_par"] = dataframe['sentence'].apply(embedder_eu.get_mean_vector)
+        #dataframe["ft_embedding_pubmed"] = dataframe['sentence'].apply(embedder_pubmed.get_mean_vector)
+
+
+        #dataframe["ft_embedding"] = \
+        #    dataframe.apply(
+        #        lambda row: embedder.get_mean_vector(
+        #            row["sentence"].lower()).tolist(),
+        #        axis=1)
+    print(dataframe)
     return dataframe
 
 
