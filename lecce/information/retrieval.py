@@ -17,7 +17,13 @@ def load(filename):
     :param filename:
     :return:
     """
-    df = pd.read_csv(f"{filename}",  delimiter='\t', header=0,
-                     names=COLUMN_NAMES, quoting=csv.QUOTE_ALL,
-                     encoding='utf-8')
+    try:
+        df = pd.read_csv(f"{filename}",  delimiter='\t', header=0,
+                         names=COLUMN_NAMES, quoting=csv.QUOTE_ALL,
+                         encoding='utf-8')
+    except pd.errors.ParserError:
+        # sadly occurs in MWE mode
+        df = pd.read_csv(f"{filename}",  delimiter='\t', header=0,
+                         names=COLUMN_NAMES, quoting=csv.QUOTE_NONE,
+                         encoding='utf-8')
     return df
