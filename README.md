@@ -5,7 +5,28 @@
 Code for the course Shared Task Information Science. Contains code of
 LECCE (LExiCal Complexity Estimator), our submission for SemEval 2021 Task 1.
 
-## Downloading and using data
+## Introduction
+
+LECCE is developed by Durk Betsema, Jantina Schakel, Leon Wetzel and Rik Zijlema
+as part of the course Shared Task Information Science, taught at the
+Information Science program of the University of Groningen. 
+
+## Prepare for take-off
+
+It is important to make sure that you 1) have installed the required Python
+packages and 2) have downloaded the LCP task data before you run the LECCE
+functionality.
+
+All necessary Python packages and modules can be found in `requirements.txt`. 
+These can be installed by simply running the following command in your 
+command line interface. We advise to use a `venv`, from which you can run the
+installation command.
+
+```shell
+pip install -r requirements.txt
+```
+
+### Auxiliary data
 
 Next to the LCP task data, we use additional data sources for training our
 word embeddings. For example, we use the King James Version of the
