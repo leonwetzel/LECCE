@@ -12,9 +12,6 @@ class Meaning:
     """
     ADJ, ADJ_SAT, ADV, NOUN, VERB = "a", "s", "r", "n", "v"
 
-    def __init__(self):
-        pass
-
     @staticmethod
     def count_wordnet_senses(word, pos_tag=None):
         """Count the amount of WordNet senses for a given word
@@ -68,23 +65,23 @@ class Frequencies:
     """
     Class containing word frequencies
     """
-    def __init__(self):
+    def __init__(self, directory="frequencies"):
         """
 
         Parameters
         ----------
         filenames
         """
-        with open("bible_dict.pkl", mode='rb') as F:
+        with open(f"{directory}/bible_dict.pkl", mode='rb') as F:
             self.bible = pickle.load(F)
 
-        with open("europarl_unfiltered_dict.pkl", mode='rb') as F:
+        with open(f"{directory}/europarl_unfiltered_dict.pkl", mode='rb') as F:
             self.europarl = pickle.load(F)
 
-        with open("pubmed_unfiltered_dict.pkl", mode='rb') as F:
+        with open(f"{directory}/pubmed_unfiltered_dict.pkl", mode='rb') as F:
             self.pubmed = pickle.load(F)
 
-        with open("overall_dict.pkl", mode='rb') as F:
+        with open(f"{directory}/overall_dict.pkl", mode='rb') as F:
             self.overall = pickle.load(F)
 
     def get_absolute_count(self, word, corpus):
