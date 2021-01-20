@@ -23,6 +23,8 @@ word embeddings. For example, we use the King James Version of the
 ...     corpus.download()
 ```
 
+### A note on file limits
+
 Note that it can take some time to download all the data! We strongly
 recommend indicating a file limit for Pubmed corpora. The default file
 limit is 200. Depending on your amount of disk space, we advise to
@@ -37,6 +39,22 @@ from the website of the National Center for Biotechnology Information
 ```
 
 The data size can be considerable, even after extracting the article abstracts!
+
+### Merging text files
+
+For our convenience, we concatenated corpus-related text files for easier
+processing later on in the generation of the word embeddings. This applied to
+both the Europarl and Pubmed corpora, which consist of multiple text files.
+
+A simple bash command suffices for this operation to be replicated. For the
+Europarl corpus, such a command would look like this:
+
+```shell
+foo@bar:~$ cat ep-*.txt > europarl.txt
+```
+
+We advise to store these concatenated text files separately from the original
+text files. We stored these files in a new directory `ez` in the directory `data`.
 
 ## Converting text to word embeddings
 
@@ -107,8 +125,6 @@ array([-0.14763358, -0.6151625 , -4.5376935 , -1.3107201 ,  2.0699606 ,
 
 ### fastText
 
-#### Training corpus-specific word embeddings 
-
 You can quickly train a new fastText model by using both the
 ``FastTextEmbedder`` and the `CorpusGenerator`. Thanks to `CorpusGenerator`, it
 is possible to iterate rapidly over all the lines and sentences in the training
@@ -121,6 +137,17 @@ should work.
 >>> sentences = CorpusGenerator(files=["data/ez/base.txt", "data/ez/bible.txt"])
 >>> embedder = FastTextEmbedder(corpus=sentences)
 ```
+
+In our examples, we always fit corpus-specific word embeddings with the base
+corpus and the subcorpus. The base corpus allows the corpus-specific word
+embeddings some generalisation, whilst maintaining .
+
+## Running the system
+
+Our regressor is based on the `LinearRegression` estimator of the Python
+software package `scikit-learn`. This regressor takes into account several
+features ($X$) to estimate the complexity score ($y$) of one or two tokens, present in
+a given sentence.
 
 ## References
 
