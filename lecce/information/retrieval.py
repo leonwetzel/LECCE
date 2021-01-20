@@ -28,7 +28,7 @@ def load(filename):
 
     try:
         df = pd.read_csv(f"{filename}", delimiter='\t', header=0,
-                         names=column_names, quoting=csv.QUOTE_ALL,
+                         names=column_names, quoting=csv.QUOTE_NONE,
                          encoding='utf-8')
     except pd.errors.ParserError:
         # sadly occurs in MWE mode

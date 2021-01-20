@@ -106,9 +106,16 @@ def extract_features(dataframe, use_token=True,
 
         dataframe["ft_embedding_bible"] = dataframe['sentence'].\
             apply(embedder_bible.get_mean_vector)
-        dataframe["ft_embedding_eu_par"] = dataframe['sentence'].\
+        dataframe["ft_embedding_europarl"] = dataframe['sentence'].\
             apply(embedder_eu.get_mean_vector)
         dataframe["ft_embedding_pubmed"] = dataframe['sentence'].\
+            apply(embedder_pubmed.get_mean_vector)
+
+        dataframe["ft_token_embedding_bible"] = dataframe["token"].\
+            apply(embedder_bible.get_mean_vector)
+        dataframe["ft_token_embedding_europarl"] = dataframe["token"].\
+            apply(embedder_eu.get_mean_vector)
+        dataframe["ft_token_embedding_pubmed"] = dataframe["token"].\
             apply(embedder_pubmed.get_mean_vector)
 
     return dataframe

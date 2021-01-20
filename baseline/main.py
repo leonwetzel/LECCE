@@ -52,8 +52,14 @@ def main():
              " like to use (-S for single trial, -M for multi trial"
              " information)!")
 
+    print("Pre-dropna")
+    print(training_data.shape)
+    print(target_data.shape)
     training_data = training_data.dropna()
     target_data = target_data.dropna()
+    print("Post-dropna")
+    print(training_data.shape)
+    print(target_data.shape)
 
     print("Extracting features...")
     X_train, y_train = extract_features(training_data,
@@ -82,6 +88,9 @@ def main():
 
     regressor.fit(X_train, y_train)
     y_guess = regressor.predict(X_target)
+
+    print("output length")
+    print(y_guess.shape)
 
     if not target_type == "Test":
         results = y_target.merge(pd.DataFrame(y_guess), left_index=True,
@@ -113,6 +122,9 @@ def main():
                                right_index=True)
         results.columns = ["Id", "Token", "Sentence", "Predicted"]
 
+        print(results[["Predicted", "Token"]], '\n')
+        print(f"Features used: {list(X_train.columns)}\n")
+
     if not os.path.isdir("output"):
         os.mkdir("output")
 
@@ -130,7 +142,7 @@ def main():
                        xlabel="Sample ID", ylabel="Complexity score",
                        grid=False, figsize=(20, 9)
                        ).get_figure()
-    fig.savefig("output/results.png")
+    fig.savefig(f"output/results_{token_type.lower()}_{target_type.lower()}")
 
     results[["Id", "Predicted"]].to_csv(
         f"output/results_{token_type.lower()}_{target_type.lower()}.csv",
